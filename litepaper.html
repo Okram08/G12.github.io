@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lite Paper - G12</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: radial-gradient(ellipse at top right, #0a101a 0%, #05070b 100%);
+      color: #eaf6ff;
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    header {
+      padding: 4rem 2rem 2rem 2rem;
+      text-align: center;
+    }
+    header h1 {
+      font-size: 3.2rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      margin-bottom: 1.2rem;
+      background: linear-gradient(90deg, #3a8dde 20%, #3ee6e0 80%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-fill-color: transparent;
+      display: inline-block;
+      position: relative;
+    }
+    header h1::after {
+      content: "_";
+      color: #3ee6e0;
+      font-size: 1.1em;
+      margin-left: 0.1em;
+      vertical-align: middle;
+      animation: blink 1s steps(2, start) infinite;
+      position: relative;
+      top: -0.1em;
+    }
+    @keyframes blink {
+      to { visibility: hidden; }
+    }
+    header p {
+      font-size: 1.25rem;
+      color: #b2c2d6;
+      margin-bottom: 2.5rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-top: 2rem;
+      margin-bottom: 2.5rem;
+    }
+    nav a {
+      color: #3ee6e0;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      position: relative;
+      transition: color 0.2s;
+      letter-spacing: 1px;
+      padding: 0.2rem 0.5rem;
+    }
+    nav a::after {
+      content: '';
+      display: block;
+      height: 2px;
+      width: 0;
+      background: #3ee6e0;
+      transition: width 0.3s;
+      position: absolute;
+      bottom: -3px;
+      left: 0;
+      border-radius: 2px;
+    }
+    nav a:hover,
+    nav a:focus {
+      color: #fff;
+    }
+    nav a:hover::after,
+    nav a:focus::after {
+      width: 100%;
+    }
+    .home-btn {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 1.15rem;
+      letter-spacing: 0.06em;
+      background: linear-gradient(90deg, #3a8dde 20%, #3ee6e0 80%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-fill-color: transparent;
+      border: 2px solid #3ee6e0;
+      border-radius: 40px;
+      padding: 0.7rem 2.2rem;
+      text-decoration: none;
+      box-shadow: 0 4px 24px #3ee6e033;
+      transition: background 0.2s, color 0.2s, border 0.2s, transform 0.2s;
+      display: inline-block;
+      margin-bottom: 2rem;
+      margin-top: 0;
+      position: relative;
+    }
+    .home-btn:hover, .home-btn:focus {
+      background: linear-gradient(90deg, #3ee6e0 0%, #3a8dde 100%);
+      color: #fff;
+      -webkit-text-fill-color: #fff;
+      border-color: #3a8dde;
+      transform: translateY(-2px) scale(1.04);
+    }
+    .litepaper-section {
+      padding: 3rem 2rem 2.5rem 2rem;
+      max-width: 900px;
+      margin: 2.5rem auto 0 auto;
+      background: rgba(18,22,32,0.93);
+      border-radius: 24px;
+      box-shadow: 0 6px 28px rgba(0,0,0,0.32);
+      z-index: 1;
+      position: relative;
+      margin-bottom: 2.5rem;
+    }
+    .litepaper-section h2 {
+      font-size: 1.5rem;
+      background: linear-gradient(90deg, #3a8dde 20%, #3ee6e0 80%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-fill-color: transparent;
+      margin-bottom: 1rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      display: inline-block;
+    }
+    .litepaper-section h3 {
+      font-size: 1.2rem;
+      margin: 2rem 0 1rem 0;
+      color: #3ee6e0;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    .litepaper-section ul, .litepaper-section ol {
+      margin: 1em 0 1em 1.5em;
+      color: #dddddd;
+      font-size: 1.08rem;
+      line-height: 1.7;
+    }
+    .litepaper-section li {
+      margin-bottom: 0.5rem;
+    }
+    .litepaper-section table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5em 0;
+      font-size: 1rem;
+      color: #eaf6ff;
+      background: rgba(24,34,54,0.6);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px #3ee6e022;
+    }
+    .litepaper-section th, .litepaper-section td {
+      padding: 0.7em 1em;
+      text-align: center;
+      border-bottom: 1px solid #222a38;
+    }
+    .litepaper-section th {
+      background: linear-gradient(90deg, #3a8dde 20%, #3ee6e0 80%);
+      color: #101828;
+      font-weight: 700;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-fill-color: transparent;
+    }
+    .litepaper-section tr:last-child td {
+      border-bottom: none;
+    }
+    .litepaper-section strong {
+      color: #3ee6e0;
+      font-weight: 600;
+    }
+    .litepaper-section .emoji {
+      font-size: 1.2em;
+      margin-right: 0.3em;
+      vertical-align: middle;
+    }
+    @media (max-width: 700px) {
+      header h1 { font-size: 2.1rem; }
+      nav { gap: 1.2rem; }
+      .litepaper-section { padding: 1.5rem 0.7rem; }
+      .litepaper-section table, .litepaper-section th, .litepaper-section td { font-size: 0.95rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Lite Paper</h1>
+    <p>Comprendre la vision derrière Trinity Crypto Fund</p>
+
+  </header>
+
+  <div style="display: flex; justify-content: center; margin-top: 2rem;">
+    <a href="index.html" class="home-btn">← Accueil</a>
+  </div>
+
+  <section class="litepaper-section">
+    <h2><span class="emoji">🌟</span>Résumé Attractif</h2>
+    <p>
+      Le <strong>[Nom du Fonds]</strong> est un fonds d'investissement crypto nouvelle génération, conçu pour offrir une exposition intelligente, rigoureuse et performante aux marchés d'actifs numériques.<br>
+      Notre approche hybride combine analyse algorithmique avancée, prise de décision humaine stratégique, et gestion active du risque. Nous construisons des portefeuilles diversifiés et adaptatifs, capables de s'ajuster aux cycles de marché et de protéger le capital en période de volatilité.<br>
+      <strong>Notre mission :</strong> rendre l'investissement crypto sûr, compréhensible et accessible, tout en capitalisant sur les opportunités détectées par nos modèles algorithmiques internes.
+    </p>
+
+    <h2><span class="emoji">🔎</span>Problème Identifié</h2>
+    <ul>
+      <li>Trop de volatilité et peu de gestion du risque</li>
+      <li>Excès de dépendance à la hype ou aux tendances sociales</li>
+      <li>Absence de méthodologie claire d'allocation ou d’arbitrage</li>
+      <li>Faible lisibilité sur les performances réelles des projets</li>
+    </ul>
+    <p>
+      Nous avons identifié le besoin d'un cadre professionnel, technique et discipliné pour investir dans les actifs digitaux sans subir les effets du chaos de marché.
+    </p>
+
+    <h2><span class="emoji">📊</span>Stratégie d’Investissement</h2>
+    <h3>🛍️ Une approche multi-niveaux, pilotée par les données</h3>
+    <ul>
+      <li>Analyse algorithmique avancée (prix, on-chain, sentiment)</li>
+      <li>Filtrage humain stratégique (macro, fondamentaux, narratifs)</li>
+      <li>Cadre de gestion rigoureux (exposition, stop-loss, rebalancing)</li>
+    </ul>
+    <h3>🛠️ Construction du portefeuille</h3>
+    <table>
+      <tr>
+        <th>Pôle</th>
+        <th>Contenu</th>
+        <th>Objectif</th>
+      </tr>
+      <tr>
+        <td>Core (40-60%)</td>
+        <td>BTC, ETH, L1 solides</td>
+        <td>Stabilisateurs</td>
+      </tr>
+      <tr>
+        <td>Satellites</td>
+        <td>Altcoins solides, DeFi</td>
+        <td>Croissance à moyen terme</td>
+      </tr>
+      <tr>
+        <td>Opportunités</td>
+        <td>Signaux algos, trades court/moyen terme</td>
+        <td>Alpha tactique</td>
+      </tr>
+    </table>
+    <h3>⛨️ Gestion du risque</h3>
+    <ul>
+      <li>Stops dynamiques</li>
+      <li>Limites de drawdown</li>
+      <li>Plans de repli structurels</li>
+      <li>Surveillance des corrélations croisées</li>
+    </ul>
+    <h3>⏳ Réallocation dynamique</h3>
+    <ul>
+      <li>Hebdomadaire (marché normal)</li>
+      <li>Immédiate (marché stressé)</li>
+    </ul>
+
+    <h2><span class="emoji">📈</span>Performances & Simulations</h2>
+    <h3>🔍 Backtests historiques (données simulées)</h3>
+    <table>
+      <tr>
+        <th>Année</th>
+        <th>Fonds</th>
+        <th>BTC</th>
+        <th>ETH</th>
+        <th>Drawdown max</th>
+        <th>Volatilité</th>
+      </tr>
+      <tr>
+        <td>2021</td>
+        <td>+102%</td>
+        <td>+60%</td>
+        <td>+400%</td>
+        <td>-14%</td>
+        <td>24%</td>
+      </tr>
+      <tr>
+        <td>2022</td>
+        <td>-8%</td>
+        <td>-64%</td>
+        <td>-68%</td>
+        <td>-11%</td>
+        <td>19%</td>
+      </tr>
+      <tr>
+        <td>2023</td>
+        <td>+34%</td>
+        <td>+13%</td>
+        <td>+54%</td>
+        <td>-9%</td>
+        <td>17%</td>
+      </tr>
+    </table>
+    <h3>🌐 Objectif de rendement</h3>
+    <ul>
+      <li>Cible : 12% à 30% net par an</li>
+      <li>Volatilité cible inférieure à celle du marché brut</li>
+      <li>Transparence totale (reporting mensuel / dashboard investisseur)</li>
+    </ul>
+
+    <h2><span class="emoji">🏗️</span>Architecture Technique</h2>
+    <h3>🔧 Stack technologique</h3>
+    <ul>
+      <li>Algorithmes internes Python / Rust</li>
+      <li>APIs : Glassnode, CEX/DEX, sentiment tracking</li>
+      <li>Signal engine + rebalancer + bots privés</li>
+    </ul>
+    <h3>🔐 Sécurité des fonds</h3>
+    <ul>
+      <li>Custody multi-signature (Gnosis, Fireblocks)</li>
+      <li>Segmentation des poches (trading, réserve, épargne)</li>
+      <li>Journalisation automatique infalsifiable</li>
+    </ul>
+    <h3>📊 Interface et suivi</h3>
+    <ul>
+      <li>Dashboard temps réel</li>
+      <li>Accès aux arbitrages et performances par pôle</li>
+      <li>Reporting PDF mensuel</li>
+    </ul>
+
+    <h2><span class="emoji">📅</span>Roadmap & Déploiement</h2>
+    <ul>
+      <li><strong>T1-T2 2025 :</strong> R&D, backtests, mise en place de l’infra</li>
+      <li><strong>T3 2025 :</strong> Lancement pilote (investisseurs privés), premiers capitaux réels gérés</li>
+      <li><strong>T4 2025 - T1 2026 :</strong> Ouverture élargie, audit externe, montée en charge de la stratégie</li>
+      <li><strong>2026+ :</strong> Éventuelle tokenisation, structuration SPV / DAO, déploiement public</li>
+    </ul>
+
+    <h2><span class="emoji">🤝</span>Équipe & Valeurs</h2>
+    <h3>Fondations</h3>
+    <ul>
+      <li>Experts finance, crypto, data science</li>
+      <li>Convergence de compétences quantitatives, stratégiques, techniques</li>
+    </ul>
+    <h3>Valeurs clés</h3>
+    <ul>
+      <li>Transparence ✨</li>
+      <li>Discipline ✊</li>
+      <li>Accessibilité 🌍</li>
+      <li>Sécurité 🔒</li>
+      <li>Responsabilité 📊</li>
+    </ul>
+
+    <h2><span class="emoji">💰</span>Tokenomics (optionnel)</h2>
+    <h3>Objectifs</h3>
+    <ul>
+      <li>Token possible uniquement si utile :</li>
+      <ul>
+        <li>Accès à certaines stratégies</li>
+        <li>Gouvernance partielle (DAO)</li>
+        <li>Tokenisation des parts à long terme</li>
+      </ul>
+    </ul>
+    <h3>Cas d’usage envisagés</h3>
+    <table>
+      <tr>
+        <th>Usage</th>
+        <th>Fonction</th>
+      </tr>
+      <tr>
+        <td>Accès Premium</td>
+        <td>Stratégies réservées + frais réduits</td>
+      </tr>
+      <tr>
+        <td>Gouvernance DAO</td>
+        <td>Votes sur certaines orientations</td>
+      </tr>
+      <tr>
+        <td>Incentives</td>
+        <td>Récompenses ou bonus de performance</td>
+      </tr>
+    </table>
+  </section>
+
+  <footer>
+    &copy; 2025 G12. Tous droits réservés.
+  </footer>
+</body>
+</html>
