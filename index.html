@@ -63,6 +63,7 @@
       align-items: center;
       position: relative;
       margin-bottom: 0.2rem;
+      /* Pas de pseudo-élément, pas de background, pas de filter */
     }
     .logo-glow::before {
       content: "";
@@ -80,18 +81,20 @@
     .logo-g12 {
       height: 200px;
       z-index: 1;
-      filter: drop-shadow(0 2px 24px var(--accent-light));
       max-width: 90vw;
       object-fit: contain;
+      /* PAS de filter, PAS de box-shadow */
       background: transparent !important;
       border-radius: 22px;
-      box-shadow: none;
+      box-shadow: none !important;
+      filter: none !important;
       transition: opacity 0.3s;
+
     }
     .logo-g12:hover {
-      filter: brightness(1.07) drop-shadow(0 4px 32px #3ee6e044);
+      /* PAS d’effet lumineux */
       opacity: 1;
-    }
+     }
     @media (max-width: 900px) {
       .logo-g12 { height: 130px; }
       .logo-glow::before { width: 180px; height: 180px; }
@@ -604,6 +607,7 @@
     </nav>
     <a href="#produit" class="cta-btn">Découvrir notre technologie</a>
   </header>
+
   <h2 class="section-title">Pourquoi choisir G12 ?</h2>
   <section class="advantages-list" aria-label="Avantages">
     <div class="advantage">
