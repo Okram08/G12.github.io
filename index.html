@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>G12 - Accueil</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <style>
+    html, body {
+      scroll-behavior: smooth;
+    }
+    body {
+      background: radial-gradient(ellipse at top right, #0a101a 0%, #05070b 100%);
+      color: #eaf6ff;
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .background-shape, .background-shape-2 {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .background-shape {
+      top: -250px; left: -250px;
+      width: 900px; height: 900px;
+      background: radial-gradient(circle at 60% 40%, #3ee6e0cc 0%, #3a8dde55 60%, transparent 100%);
+      filter: blur(60px);
+      opacity: 0.6;
+      animation: blobMove 20s ease-in-out infinite alternate;
+    }
+    .background-shape-2 {
+      top: 100px; right: -200px;
+      width: 700px; height: 700px;
+      background: radial-gradient(circle at 40% 60%, #3a8ddecc 0%, #3ee6e055 60%, transparent 100%);
+      filter: blur(50px);
+      opacity: 0.5;
+      animation: blobMove2 25s ease-in-out infinite alternate;
+    }
+    @keyframes blobMove {
+      0%   { transform: scale(1) translate(0,0);}
+      40%  { transform: scale(1.1, 0.9) translate(50px, 40px);}
+      60%  { transform: scale(0.9, 1.1) translate(40px, 70px);}
+      100% { transform: scale(1.15, 0.85) translate(80px, 20px);}
+    }
+    @keyframes blobMove2 {
+      0%   { transform: scale(1) translate(0,0);}
+      40%  { transform: scale(0.9, 1.1) translate(-40px, -30px);}
+      60%  { transform: scale(1.1, 0.9) translate(-30px, -60px);}
+      100% { transform: scale(0.85, 1.15) translate(-70px, -20px);}
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-top: 2rem;
+      margin-bottom: 2.5rem;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      transition: background 0.3s;
+    }
+    nav a {
+      color: #3ee6e0;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      position: relative;
+      transition: color 0.2s;
+      letter-spacing: 1px;
+      padding: 0.2rem 0.5rem;
+      outline: none;
+    }
+    nav a::after {
+      content: '';
+      display: block;
+      height: 2px;
+      width: 0;
+      background: #3ee6e0;
+      transition: width 0.3s;
+      position: absolute;
+      bottom: -3px;
+      left: 0;
+      border-radius: 2px;
+    }
+    nav a:hover, nav a:focus {
+      color: #fff;
+    }
+    nav a:hover::after, nav a:focus::after {
+      width: 100%;
+    }
+    nav a:focus {
+      outline: 2px solid #3ee6e0;
+      outline-offset: 2px;
+    }
+    .cta-btn {
+      background: linear-gradient(90deg, #3ee6e0 0%, #3a8dde 100%);
+      color: #101828;
+      padding: 1rem 2.5rem;
+      border: none;
+      border-radius: 40px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 24px #3ee6e055;
+      transition: background 0.2s, color 0.2s, transform 0.2s;
+      letter-spacing: 1px;
+      margin-top: 1.5rem;
+      margin-bottom: 2rem;
+      display: inline-block;
+      animation: pulse 2.5s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 #3ee6e044; }
+      70% { box-shadow: 0 0 0 12px transparent; }
+      100% { box-shadow: 0 0 0 0 transparent; }
+    }
+    .cta-btn:hover, .cta-btn:focus {
+      background: linear-gradient(90deg, #3a8dde 0%, #3ee6e0 100%);
+      color: #fff;
+      transform: translateY(-2px) scale(1.04);
+    }
+    header {
+      padding: 4rem 2rem 2rem 2rem;
+      text-align: center;
+    }
+    header h1 {
+      font-size: 3.2rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      margin-bottom: 1.2rem;
+      background: linear-gradient(90deg, #3a8dde 20%, #3ee6e0 80%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-fill-color: transparent;
+      display: inline-block;
+      position: relative;
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 1s, transform 1s;
+    }
+    header h1.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    header h1::after {
+      content: "_";
+      color: #3ee6e0;
+      font-size: 1.1em;
+      margin-left: 0.1em;
+      vertical-align: middle;
+      animation: blink 1s steps(2, start) infinite;
+      position: relative;
+      top: -0.1em;
+    }
+    @keyframes blink {
+      to { visibility: hidden; }
+    }
+    header p {
+      font-size: 1.25rem;
+      color: #b2c2d6;
+      margin-bottom: 2.5rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 1s 0.2s, transform 1s 0.2s;
+    }
+    header p.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .fade-in {
+      opacity: 0;
+      transform: translateY(60px);
+      transition: opacity 1s, transform 1s;
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .glass-card {
+      background: rgba(18,22,32,0.93);
+      border-radius: 24px;
+      box-shadow: 0 6px 28px rgba(0,0,0,0.32);
+      padding: 3rem 2rem;
+      margin: 2.5rem auto;
+      max-width: 600px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(62,230,224,0.08);
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .glass-card:hover {
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: 0 16px 40px #3ee6e044;
+    }
+    .glass-card h2 {
+      font-size: 2rem;
+      color: #222a38;
+      background: linear-gradient(90deg, #3a8dde 20%, #3ee6e0 80%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-fill-color: transparent;
+      margin-bottom: 1rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 0.4em 1em;
+      border-radius: 2em;
+      transition: background 0.25s, color 0.25s, box-shadow 0.25s;
+      position: relative;
+      z-index: 2;
+      display: inline-block;
+    }
+    .glass-card h2:hover,
+    .glass-card h2:focus {
+      background: #fff;
+      color: #203a43;
+      -webkit-text-fill-color: #203a43;
+      text-fill-color: #203a43;
+      box-shadow: 0 4px 24px #fff6, 0 0 0 4px #3ee6e055;
+      cursor: pointer;
+    }
+    .glass-card h2:focus {
+      outline: 2px solid #3ee6e0;
+      outline-offset: 2px;
+    }
+    .glass-card p {
+      color: #b2c2d6;
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+    }
+    /* Carousel témoignages sans flèches */
+    .testimonials-wrapper {
+      overflow-x: auto;
+      padding: 2rem 1rem 2.5rem 1rem;
+      background: rgba(18,22,32,0.6);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      max-width: 100vw;
+      position: relative;
+      cursor: grab;
+      user-select: none;
+    }
+    .testimonials-wrapper.active {
+      cursor: grabbing;
+    }
+    .testimonials {
+      display: flex;
+      gap: 1rem;
+      min-width: fit-content;
+      transition: transform 0.7s cubic-bezier(.4,1.2,.4,1);
+    }
+    .testimonial {
+      flex: 0 0 auto;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(62,230,224,0.1);
+      border-radius: 16px;
+      padding: 1.5rem;
+      width: 280px;
+      color: #eaf6ff;
+      transition: box-shadow 0.3s, transform 0.3s;
+      box-shadow: 0 2px 8px #3ee6e022;
+      position: relative;
+    }
+    .testimonial p {
+      font-style: italic;
+      font-size: 0.95rem;
+      margin-bottom: 0.8rem;
+    }
+    .testimonial span {
+      display: block;
+      font-weight: bold;
+      font-size: 0.85rem;
+      color: #3ee6e0;
+    }
+    footer {
+      background: #05070b;
+      padding: 2rem;
+      text-align: center;
+      color: #888;
+      font-size: 0.9rem;
+      margin-top: 4rem;
+      letter-spacing: 1px;
+    }
+    footer nav {
+      margin-top: 1rem;
+    }
+    footer nav a {
+      color: #888;
+      margin: 0 1rem;
+      text-decoration: none;
+    }
+    footer nav a:hover {
+      color: #fff;
+    }
+    @media (max-width: 700px) {
+      header h1 { font-size: 2.1rem; }
+      .glass-card { padding: 1.5rem 0.7rem; }
+      nav { gap: 1.2rem; flex-direction: column; }
+      .background-shape {
+        width: 400px; height: 400px; top: -100px; left: -100px; filter: blur(32px);
+      }
+      .background-shape-2 {
+        width: 250px; height: 250px; top: 120px; right: -60px; filter: blur(24px);
+      }
+      .testimonials-wrapper { padding: 1rem 0.2rem 2rem 0.2rem; }
+      .testimonial { width: 90vw; min-width: 220px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="background-shape"></div>
+  <div class="background-shape-2"></div>
+  <header>
+    <h1>G12</h1>
+    <p>Rethinking Predictive Intelligence.<br>
+    Transformez la donnée en stratégie gagnante pour la DeFi.</p>
+    <nav>
+      <a href="#a-propos">À propos</a>
+      <a href="#produit">Notre Algorithme</a>
+      <a href="#performances">Performances</a>
+      <a href="blog.html">Blog</a>
+      <a href="litepaper.html">Lite Paper</a>
+    </nav>
+    <a href="#produit" class="cta-btn">Découvrir notre technologie</a>
+  </header>
+
+  <div class="glass-card fade-in" id="produit">
+    <h2 tabindex="0">Notre Algorithme</h2>
+    <p>Un agent personnalisé pour chaque trader.<br>
+    Analyse, prédiction, exécution : votre avantage dans la finance décentralisée.</p>
+    <a href="litepaper.html" class="cta-btn">En savoir plus</a>
+  </div>
+
+  <div class="glass-card fade-in" id="a-propos">
+    <h2 tabindex="0">À propos de nous</h2>
+    <p>Nous sommes trois amis passionnés de finance et de technologie. Ensemble, nous avons lancé Trinity BTC pour offrir une nouvelle manière d’investir grâce à un agent crypto ultra performant.</p>
+  </div>
+
+  <div class="glass-card fade-in" id="performances">
+    <h2 tabindex="0">Performances & Transparence</h2>
+    <p>Suivez nos performances en direct. Notre approche transparente vous permet de voir nos résultats, notre allocation d’actifs et nos décisions en toute confiance.</p>
+  </div>
+
+  <div class="glass-card fade-in" id="contact">
+    <h2 tabindex="0">Contactez-nous</h2>
+    <p>Email : <a href="mailto:contact@trinitybtc.com" style="color:#3ee6e0;text-decoration:underline;">contact@trinitybtc.com</a></p>
+    <p>Suivez-nous sur Twitter, LinkedIn, et Telegram.</p>
+  </div>
+
+  <div class="testimonials-wrapper fade-in" id="temoignages">
+    <div class="testimonials" id="testimonials">
+      <div class="testimonial">
+        <p>"L'algorithme de G12 m'a permis d'arreter d'investir dans le miscanthus. Bluffant !"</p>
+        <span>— Mathieu G., Boussu</span>
+      </div>
+      <div class="testimonial">
+        <p>"Une interface propre, une transparence totale comme moi avec ma meuf."</p>
+        <span>— Louis J., Tournai</span>
+      </div>
+      <div class="testimonial">
+        <p>"Je n’imaginais pas un jour cuisiner. Merci G12, grâce à vous j'ai désormais un chef à domicile !"</p>
+        <span>— Ilona L, Soignies</span>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 Trinity BTC. Tous droits réservés.</p>
+    <nav>
+      <a href="#">Mentions légales</a>
+      <a href="#">Politique de confidentialité</a>
+      <a href="mailto:contact@trinitybtc.com">Contact</a>
+    </nav>
+  </footer>
+  <script>
+    // Animation fade-in au scroll
+    function revealOnScroll() {
+      document.querySelectorAll('.fade-in').forEach(el => {
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight - 50) {
+          el.classList.add('visible');
+        }
+      });
+      // Header
+      const h1 = document.querySelector('header h1');
+      const p = document.querySelector('header p');
+      if (h1 && !h1.classList.contains('visible')) h1.classList.add('visible');
+      if (p && !p.classList.contains('visible')) p.classList.add('visible');
+    }
+    window.addEventListener('scroll', revealOnScroll);
+    window.addEventListener('DOMContentLoaded', revealOnScroll);
+
+    // Carousel témoignages : drag to scroll (souris + tactile)
+    const wrapper = document.querySelector('.testimonials-wrapper');
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+
+    wrapper.addEventListener('mousedown', (e) => {
+      isDown = true;
+      wrapper.classList.add('active');
+      startX = e.pageX - wrapper.offsetLeft;
+      scrollLeft = wrapper.scrollLeft;
+    });
+    wrapper.addEventListener('mouseleave', () => {
+      isDown = false;
+      wrapper.classList.remove('active');
+    });
+    wrapper.addEventListener('mouseup', () => {
+      isDown = false;
+      wrapper.classList.remove('active');
+    });
+    wrapper.addEventListener('mousemove', (e) => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.pageX - wrapper.offsetLeft;
+      const walk = (x - startX) * 2; // Ajuste la vitesse de scroll
+      wrapper.scrollLeft = scrollLeft - walk;
+    });
+
+    // Support tactile (mobile)
+    wrapper.addEventListener('touchstart', (e) => {
+      isDown = true;
+      startX = e.touches[0].pageX - wrapper.offsetLeft;
+      scrollLeft = wrapper.scrollLeft;
+    });
+    wrapper.addEventListener('touchend', () => {
+      isDown = false;
+    });
+    wrapper.addEventListener('touchmove', (e) => {
+      if (!isDown) return;
+      const x = e.touches[0].pageX - wrapper.offsetLeft;
+      const walk = (x - startX) * 2;
+      wrapper.scrollLeft = scrollLeft - walk;
+    });
+  </script>
+</body>
+</html>
