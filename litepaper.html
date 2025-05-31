@@ -608,6 +608,41 @@
 
   <footer>
     &copy; 2025 G12. Tous droits réservés.
+    <nav>
+      <a href="#">Mentions légales</a>
+      <a href="#">Politique de confidentialité</a>
+      <a href="mailto:contact@trinitybtc.com">Contact</a>
+    </nav>
   </footer>
+  <script>
+    // Burger menu JS
+    const burger = document.querySelector('.burger');
+    const mobileNav = document.querySelector('.mobile-nav');
+    const overlay = document.querySelector('.mobile-nav-overlay');
+
+    function toggleMobileMenu() {
+      burger.classList.toggle('active');
+      mobileNav.classList.toggle('open');
+      overlay.classList.toggle('open');
+      // Accessibilité
+      burger.setAttribute('aria-expanded', burger.classList.contains('active'));
+      mobileNav.setAttribute('aria-hidden', !burger.classList.contains('active'));
+      // Bloque le scroll derrière le menu
+      document.body.style.overflow = burger.classList.contains('active') ? 'hidden' : '';
+    }
+
+    burger.addEventListener('click', toggleMobileMenu);
+    overlay.addEventListener('click', toggleMobileMenu);
+
+    // Ferme le menu sur redimensionnement si on repasse en desktop
+    window.addEventListener('resize', function() {
+      if(window.innerWidth > 900) {
+        burger.classList.remove('active');
+        mobileNav.classList.remove('open');
+        overlay.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+    });
+  </script>
 </body>
 </html>
