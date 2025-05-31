@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>G12 - Blog</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: radial-gradient(ellipse at top right, #0a101a 0%, #05070b 100%);
+      color: #eaf6ff;
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    header {
+      padding: 4rem 2rem 2rem 2rem;
+      text-align: center;
+    }
+    header h1 {
+      font-size: 3.2rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      margin-bottom: 1.2rem;
+      background: linear-gradient(90deg, #3a8dde 20%, #3ee6e0 80%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-fill-color: transparent;
+      display: inline-block;
+      position: relative;
+    }
+    header h1::after {
+      content: "_";
+      color: #3ee6e0;
+      font-size: 1.1em;
+      margin-left: 0.1em;
+      vertical-align: middle;
+      animation: blink 1s steps(2, start) infinite;
+      position: relative;
+      top: -0.1em;
+    }
+    @keyframes blink {
+      to { visibility: hidden; }
+    }
+    header p {
+      font-size: 1.25rem;
+      color: #b2c2d6;
+      margin-bottom: 2.5rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-top: 2rem;
+      margin-bottom: 2.5rem;
+    }
+    nav a {
+      color: #3ee6e0;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      position: relative;
+      transition: color 0.2s;
+      letter-spacing: 1px;
+      padding: 0.2rem 0.5rem;
+    }
+    nav a::after {
+      content: '';
+      display: block;
+      height: 2px;
+      width: 0;
+      background: #3ee6e0;
+      transition: width 0.3s;
+      position: absolute;
+      bottom: -3px;
+      left: 0;
+      border-radius: 2px;
+    }
+    nav a:hover,
+    nav a:focus {
+      color: #fff;
+    }
+    nav a:hover::after,
+    nav a:focus::after {
+      width: 100%;
+    }
+    .home-btn {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 1.15rem;
+      letter-spacing: 0.06em;
+      background: linear-gradient(90deg, #3a8dde 20%, #3ee6e0 80%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-fill-color: transparent;
+      border: 2px solid #3ee6e0;
+      border-radius: 40px;
+      padding: 0.7rem 2.2rem;
+      text-decoration: none;
+      box-shadow: 0 4px 24px #3ee6e033;
+      transition: background 0.2s, color 0.2s, border 0.2s, transform 0.2s;
+      display: inline-block;
+      margin-bottom: 2rem;
+      margin-top: 0;
+      position: relative;
+    }
+    .home-btn:hover, .home-btn:focus {
+      background: linear-gradient(90deg, #3ee6e0 0%, #3a8dde 100%);
+      color: #fff;
+      -webkit-text-fill-color: #fff;
+      border-color: #3a8dde;
+      transform: translateY(-2px) scale(1.04);
+    }
+    .blog-container {
+      max-width: 1200px;
+      margin: 0 auto 4rem auto;
+      padding: 0 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+    }
+    .blog-card {
+      background: rgba(18,22,32,0.93);
+      border-radius: 20px;
+      box-shadow: 0 6px 28px rgba(0,0,0,0.32);
+      padding: 1.5rem 1.5rem 2rem 1.5rem;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border: 1px solid rgba(62,230,224,0.08);
+      text-decoration: none;
+      color: #eaf6ff;
+    }
+    .blog-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 40px rgba(62,230,224,0.5);
+    }
+    .blog-card h3 {
+      font-size: 1.5rem;
+      margin-bottom: 0.8rem;
+      background: linear-gradient(90deg, #3a8dde 20%, #3ee6e0 80%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-fill-color: transparent;
+      letter-spacing: 0.03em;
+    }
+    .blog-card p {
+      flex-grow: 1;
+      font-size: 1rem;
+      color: #b2c2d6;
+      margin-bottom: 1rem;
+    }
+    .blog-card .read-more {
+      align-self: flex-start;
+      font-weight: 600;
+      color: #3ee6e0;
+      text-decoration: underline;
+      font-size: 0.95rem;
+      transition: color 0.2s;
+    }
+    .blog-card .read-more:hover {
+      color: #fff;
+    }
+    footer {
+      background: #05070b;
+      padding: 2rem;
+      text-align: center;
+      color: #888;
+      font-size: 0.9rem;
+      margin-top: 4rem;
+      letter-spacing: 1px;
+    }
+    @media (max-width: 700px) {
+      header h1 { font-size: 2.1rem; }
+      nav { gap: 1.2rem; }
+      .blog-container {
+        grid-template-columns: 1fr;
+        padding: 0 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>G12</h1>
+    <p>Rethinking Predictive Intelligence.<br>
+    Transformez la donnée en stratégie gagnante pour la DeFi.</p>
+    <nav>
+
+    </nav>
+  </header>
+
+  <!-- Bouton Accueil stylé -->
+  <div style="display: flex; justify-content: center; margin-top: 2rem;">
+    <a href="index.html" class="home-btn">← Accueil</a>
+  </div>
+
+  <main class="blog-container">
+    <a href="article1.html" class="blog-card" aria-label="Lire l'article: Introduction à la finance décentralisée">
+      <h3>Introduction à la finance décentralisée</h3>
+      <p>Découvrez les bases de la DeFi, ses avantages et comment elle révolutionne le secteur financier traditionnel.</p>
+      <span class="read-more">Lire la suite →</span>
+    </a>
+    <a href="article2.html" class="blog-card" aria-label="Lire l'article: Comprendre les algorithmes prédictifs">
+      <h3>Comprendre les algorithmes prédictifs</h3>
+      <p>Un aperçu des algorithmes qui permettent d’anticiper les tendances du marché et d’optimiser les investissements.</p>
+      <span class="read-more">Lire la suite →</span>
+    </a>
+    <a href="article3.html" class="blog-card" aria-label="Lire l'article: Sécurité dans la crypto-monnaie">
+      <h3>Sécurité dans la crypto-monnaie</h3>
+      <p>Les meilleures pratiques pour protéger vos actifs numériques et éviter les pièges courants.</p>
+      <span class="read-more">Lire la suite →</span>
+    </a>
+  </main>
+
+  <footer>
+    &copy; 2025 G12. Tous droits réservés.
+  </footer>
+</body>
+</html>
