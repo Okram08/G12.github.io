@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Performances & Transparence - G12</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <style>
+    :root {
+      --primary-color: #3ee6e0;
+      --secondary-color: #3a8dde;
+      --bg-color: #0a101a;
+      --bg-dark: #05070b;
+      --text-color: #eaf6ff;
+      --muted-color: #b2c2d6;
+      --accent-light: rgba(62, 230, 224, 0.55);
+    }
+    html, body {
+      scroll-behavior: smooth;
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      color: var(--text-color);
+      background: radial-gradient(ellipse at top right, var(--bg-color) 0%, var(--bg-dark) 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .background-shape, .background-shape-2 {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .background-shape {
+      top: -250px; left: -250px;
+      width: 900px; height: 900px;
+      background: radial-gradient(circle at 60% 40%, var(--primary-color) 0%, var(--secondary-color) 60%, transparent 100%);
+      filter: blur(60px);
+      opacity: 0.4;
+      animation: blobMove 20s ease-in-out infinite alternate;
+    }
+    .background-shape-2 {
+      top: 100px; right: -200px;
+      width: 700px; height: 700px;
+      background: radial-gradient(circle at 40% 60%, var(--secondary-color) 0%, var(--primary-color) 60%, transparent 100%);
+      filter: blur(50px);
+      opacity: 0.3;
+      animation: blobMove2 25s ease-in-out infinite alternate;
+    }
+    @keyframes blobMove {
+      0% { transform: scale(1) translate(0,0); }
+      50% { transform: scale(1.1) translate(50px, 60px); }
+      100% { transform: scale(1.15) translate(80px, 40px); }
+    }
+    @keyframes blobMove2 {
+      0% { transform: scale(1) translate(0,0); }
+      50% { transform: scale(0.9) translate(-40px, -30px); }
+      100% { transform: scale(0.85) translate(-70px, -20px); }
+    }
+    .logo-glow {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      margin-bottom: 0.3rem;
+    }
+    .logo-glow::before {
+      content: "";
+      position: absolute;
+      width: 340px; height: 340px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--primary-color) 0%, var(--secondary-color) 70%, transparent 100%);
+      filter: blur(32px);
+      opacity: 0.25;
+      z-index: 0;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .logo-g12 {
+      height: 200px;
+      z-index: 1;
+      filter: drop-shadow(0 2px 24px var(--accent-light));
+      max-width: 90vw;
+      object-fit: contain;
+      background: transparent !important;
+      border-radius: 22px;
+      box-shadow: none;
+      transition: opacity 0.3s;
+    }
+    .logo-g12:hover {
+      filter: brightness(1.07) drop-shadow(0 4px 32px #3ee6e044);
+      opacity: 1;
+    }
+    @media (max-width: 900px) {
+      .logo-g12 { height: 160px; }
+      .logo-glow::before { width: 210px; height: 210px; }
+    }
+    @media (max-width: 700px) {
+      .logo-g12 { height: 90px; }
+      .logo-glow::before { width: 100px; height: 100px; }
+    }
+    header {
+      padding: 4rem 2rem 2rem 2rem;
+      text-align: center;
+      position: relative;
+    }
+    header h1 {
+      font-size: 3.2rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      margin-bottom: 1.2rem;
+      background: linear-gradient(90deg, var(--secondary-color) 20%, var(--primary-color) 80%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-fill-color: transparent;
+      display: inline-block;
+      position: relative;
+    }
+    header h1::after {
+      content: "_";
+      color: var(--primary-color);
+      font-size: 1.1em;
+      margin-left: 0.1em;
+      vertical-align: middle;
+      animation: blink 1s steps(2, start) infinite;
+      position: relative;
+      top: -0.1em;
+    }
+    @keyframes blink {
+      to { visibility: hidden; }
+    }
+    header p {
+      font-size: 1.25rem;
+      color: var(--muted-color);
+      margin-bottom: 2.5rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    nav.desktop-nav {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+      margin: 1.5rem auto 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: transparent !important;
+      backdrop-filter: blur(4px);
+      padding: 0.8rem;
+      border-radius: 12px;
+      max-width: 800px;
+    }
+    nav.desktop-nav a {
+      color: var(--primary-color);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      position: relative;
+      padding: 0.3rem 0.6rem;
+      transition: color 0.2s;
+    }
+    nav.desktop-nav a[aria-current="page"] {
+      color: #fff;
+      font-weight: 700;
+    }
+    nav.desktop-nav a:hover, nav.desktop-nav a:focus {
+      color: #fff;
+    }
+    nav.desktop-nav a::after {
+      content: '';
+      position: absolute;
+      height: 2px;
+      width: 0;
+      bottom: 0;
+      left: 0;
+      background: var(--primary-color);
+      transition: width 0.3s;
+    }
+    nav.desktop-nav a:hover::after, nav.desktop-nav a:focus::after {
+      width: 100%;
+    }
+    /* --- Burger icon --- */
+    .burger {
+      display: none;
+      position: absolute;
+      top: 2.2rem;
+      right: 2rem;
+      width: 38px;
+      height: 38px;
+      background: none;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      z-index: 1001;
+    }
+    .burger span {
+      display: block;
+      width: 28px;
+      height: 4px;
+      margin: 6px auto;
+      background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+      border-radius: 2px;
+      transition: 0.4s;
+    }
+    .burger.active span:nth-child(1) {
+      transform: translateY(10px) rotate(45deg);
+    }
+    .burger.active span:nth-child(2) {
+      opacity: 0;
+    }
+    .burger.active span:nth-child(3) {
+      transform: translateY(-10px) rotate(-45deg);
+    }
+    /* --- Mobile NAV overlay --- */
+    .mobile-nav-overlay {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(5,7,11,0.85);
+      backdrop-filter: blur(4px);
+      transition: opacity 0.3s;
+    }
+    .mobile-nav-overlay.open {
+      display: block;
+      animation: fadeIn 0.25s;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    nav.mobile-nav {
+      position: fixed;
+      top: 0; right: 0;
+      width: 80vw; max-width: 320px;
+      height: 100vh;
+      background: rgba(18,22,32,0.98);
+      box-shadow: -2px 0 18px rgba(62,230,224,0.13);
+      border-left: 1.5px solid rgba(62,230,224,0.12);
+      z-index: 1002;
+      transform: translateX(100%);
+      transition: transform 0.3s;
+      display: flex;
+      flex-direction: column;
+      padding: 2.5rem 1.5rem;
+      gap: 2rem;
+    }
+    nav.mobile-nav.open {
+      transform: translateX(0);
+    }
+    nav.mobile-nav a {
+      color: var(--primary-color);
+      font-size: 1.15rem;
+      font-weight: 600;
+      text-decoration: none;
+      margin-bottom: 1rem;
+      letter-spacing: 0.03em;
+      transition: color 0.2s;
+    }
+    nav.mobile-nav a[aria-current="page"] {
+      color: #fff;
+      font-weight: 700;
+    }
+    nav.mobile-nav a:hover, nav.mobile-nav a:focus {
+      color: #fff;
+    }
+    @media (max-width: 900px) {
+      nav.desktop-nav {
+        display: none;
+      }
+      .burger {
+        display: block;
+      }
+    }
+    @media (min-width: 901px) {
+      .mobile-nav-overlay,
+      nav.mobile-nav {
+        display: none !important;
+      }
+    }
+    .cta-btn {
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+      color: #0a101a;
+      padding: 1rem 2rem;
+      border-radius: 40px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      margin: 1rem auto 2rem;
+      display: inline-block;
+      transition: all 0.2s ease-in-out;
+      animation: pulse 3s infinite;
+      text-decoration: none;
+    }
+    .cta-btn:hover {
+      transform: scale(1.05);
+      color: white;
+      background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 var(--accent-light); }
+      70% { box-shadow: 0 0 0 12px transparent; }
+      100% { box-shadow: 0 0 0 0 transparent; }
+    }
+    .perf-container {
+      max-width: 950px;
+      margin: 0 auto 4rem auto;
+      padding: 2.5rem 2rem 2.5rem 2rem;
+      background: rgba(18,22,32,0.93);
+      border-radius: 24px;
+      box-shadow: 0 6px 28px rgba(0,0,0,0.32);
+      z-index: 1;
+      position: relative;
+      margin-top: 2.5rem;
+      color: var(--text-color);
+    }
+    .perf-container h2 {
+      font-size: 2rem;
+      background: linear-gradient(90deg, var(--secondary-color) 20%, var(--primary-color) 80%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-fill-color: transparent;
+      margin-bottom: 1.2rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .perf-keyfigures {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2.5rem;
+      justify-content: space-between;
+      margin-bottom: 2.5rem;
+    }
+    .perf-fig {
+      flex: 1 1 180px;
+      background: rgba(62,230,224,0.09);
+      border-radius: 18px;
+      padding: 1.2rem 1.2rem 1rem 1.2rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 12px #3ee6e022;
+      min-width: 160px;
+    }
+    .perf-fig strong {
+      font-size: 2.1rem;
+      color: var(--primary-color);
+      display: block;
+      font-weight: 700;
+      margin-bottom: 0.2rem;
+      letter-spacing: 1px;
+    }
+    .perf-fig span {
+      color: var(--muted-color);
+      font-size: 1.02rem;
+      font-weight: 500;
+    }
+    .perf-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 2.5rem 0;
+      background: rgba(24,34,54,0.6);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px #3ee6e022;
+    }
+    .perf-table th, .perf-table td {
+      padding: 0.9em 1.2em;
+      text-align: center;
+      border-bottom: 1px solid #222a38;
+    }
+    .perf-table th {
+      background: linear-gradient(90deg, var(--secondary-color) 20%, var(--primary-color) 80%);
+      color: #101828;
+      font-weight: 700;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-fill-color: transparent;
+    }
+    .perf-table tr:last-child td {
+      border-bottom: none;
+    }
+    .perf-table td {
+      color: var(--muted-color);
+      font-size: 1.08rem;
+    }
+    .perf-indicators {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      margin: 2.5rem 0 2rem 0;
+      justify-content: space-between;
+    }
+    .perf-indicator {
+      flex: 1 1 230px;
+      background: rgba(62,230,224,0.07);
+      border-radius: 14px;
+      padding: 1rem 1.2rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 8px #3ee6e022;
+      min-width: 180px;
+    }
+    .perf-indicator strong {
+      color: var(--primary-color);
+      font-size: 1.1rem;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 0.4rem;
+    }
+    .perf-indicator span {
+      color: var(--muted-color);
+      font-size: 0.98rem;
+    }
+    .perf-scenarios {
+      margin: 2.5rem 0 1.5rem 0;
+      padding: 2rem 1.5rem;
+      background: rgba(62,230,224,0.06);
+      border-radius: 14px;
+      box-shadow: 0 2px 8px #3ee6e022;
+    }
+    .perf-scenarios h3 {
+      font-size: 1.15rem;
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+    .perf-scenarios ul {
+      margin-left: 1.5em;
+      color: var(--muted-color);
+      font-size: 1.05rem;
+    }
+    .perf-advanced {
+      margin-top: 2.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(62,230,224,0.11);
+    }
+    .perf-advanced h3 {
+      color: var(--secondary-color);
+      font-size: 1.13rem;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+    .perf-advanced ul {
+      margin-left: 1.5em;
+      color: var(--muted-color);
+      font-size: 1.01rem;
+    }
+    @media (max-width: 900px) {
+      .perf-keyfigures, .perf-indicators {
+        flex-direction: column;
+        gap: 1.2rem;
+      }
+      .perf-fig, .perf-indicator {
+        min-width: 0;
+      }
+    }
+    @media (max-width: 700px) {
+      header h1 { font-size: 2.1rem; }
+      .perf-container { padding: 1.2rem 0.5rem; }
+      .perf-container h2 { font-size: 1.3rem; }
+      .perf-table th, .perf-table td { font-size: 0.96rem; }
+    }
+    footer {
+      background: var(--bg-dark);
+      padding: 2rem;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #888;
+      margin-top: 4rem;
+      letter-spacing: 1px;
+      position: relative;
+      z-index: 2;
+    }
+    footer nav {
+      margin-top: 1rem;
+    }
+    footer nav a {
+      color: #888;
+      margin: 0 1rem;
+      text-decoration: none;
+    }
+    footer nav a:hover {
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="background-shape"></div>
+  <div class="background-shape-2"></div>
+  <header>
+    <div class="logo-glow">
+      <img src="G12.png" alt="Logo G12" class="logo-g12">
+    </div>
+    <h1>Performances & Transparence</h1>
+    <p>Suivez nos performances, nos allocations et nos indicateurs clés en toute transparence.</p>
+    <!-- Desktop NAV identique à performances -->
+    <nav class="desktop-nav">
+      <a href="index.html">Accueil</a>
+      <a href="litepaper.html">Lite Paper</a>
+      <a href="blog.html">Blog</a>
+      <a href="performances.html" aria-current="page">Performances</a>
+    </nav>
+    <!-- Burger icon -->
+    <button class="burger" aria-label="Ouvrir le menu" aria-controls="mobile-menu" aria-expanded="false">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <!-- Mobile NAV overlay and menu -->
+    <div class="mobile-nav-overlay"></div>
+    <nav class="mobile-nav" id="mobile-menu" aria-hidden="true">
+      <a href="index.html">Accueil</a>
+      <a href="litepaper.html">Lite Paper</a>
+      <a href="blog.html">Blog</a>
+      <a href="performances.html" aria-current="page">Performances</a>
+    </nav>
+  </header>
+
+  <main class="perf-container">
+    <h2>Chiffres clés du fonds</h2>
+    <div class="perf-keyfigures">
+      <div class="perf-fig">
+        <strong>+34,2%</strong>
+        <span>Performance 2024 (YTD)</span>
+      </div>
+      <div class="perf-fig">
+        <strong>€2,4M</strong>
+        <span>Actifs sous gestion</span>
+      </div>
+      <div class="perf-fig">
+        <strong>12,1%</strong>
+        <span>Volatilité annualisée</span>
+      </div>
+      <div class="perf-fig">
+        <strong>-6,7%</strong>
+        <span>Drawdown max</span>
+      </div>
+      <div class="perf-fig">
+        <strong>1,32</strong>
+        <span>Ratio de Sharpe</span>
+      </div>
+    </div>
+    <h2>Performances historiques</h2>
+    <table class="perf-table">
+      <tr>
+        <th>Année</th>
+        <th>Performance Fonds</th>
+        <th>BTC</th>
+        <th>ETH</th>
+        <th>Drawdown max</th>
+        <th>Volatilité</th>
+      </tr>
+      <tr>
+        <td>2021</td>
+        <td>+102%</td>
+        <td>+60%</td>
+        <td>+400%</td>
+        <td>-14%</td>
+        <td>24%</td>
+      </tr>
+      <tr>
+        <td>2022</td>
+        <td>-8%</td>
+        <td>-64%</td>
+        <td>-68%</td>
+        <td>-11%</td>
+        <td>19%</td>
+      </tr>
+      <tr>
+        <td>2023</td>
+        <td>+34%</td>
+        <td>+13%</td>
+        <td>+54%</td>
+        <td>-9%</td>
+        <td>17%</td>
+      </tr>
+      <tr>
+        <td>2024 (YTD)</td>
+        <td>+34,2%</td>
+        <td>+42%</td>
+        <td>+67%</td>
+        <td>-6,7%</td>
+        <td>12,1%</td>
+      </tr>
+    </table>
+
+    <div class="perf-indicators">
+      <div class="perf-indicator">
+        <strong>TVL (Total Value Locked)</strong>
+        <span>€1,9M (en hausse sur 12 mois)</span>
+      </div>
+      <div class="perf-indicator">
+        <strong>Nombre d’investisseurs</strong>
+        <span>+ 320</span>
+      </div>
+      <div class="perf-indicator">
+        <strong>Frais de gestion</strong>
+        <span>1,5% annuels</span>
+      </div>
+      <div class="perf-indicator">
+        <strong>Frais de performance</strong>
+        <span>15% au-delà de 6%/an</span>
+      </div>
+    </div>
+
+    <div class="perf-scenarios">
+      <h3>Scénarios de rendement (simulation sur 5 ans)</h3>
+      <ul>
+        <li><b>Scénario défavorable :</b> -5% par an</li>
+        <li><b>Scénario intermédiaire :</b> +8% par an</li>
+        <li><b>Scénario favorable :</b> +21% par an</li>
+        <li><b>Scénario de crise :</b> -18% sur une année</li>
+      </ul>
+      <div style="color:#b2c2d6;font-size:0.98rem; margin-top:1em;">
+        Ces scénarios sont basés sur des simulations historiques et ne préjugent pas des performances futures.
+      </div>
+    </div>
+
+    <div class="perf-advanced">
+      <h3>Indicateurs avancés & transparence</h3>
+      <ul>
+        <li><b>Ratio de Sharpe :</b> 1,32 (risque/rendement ajusté)</li>
+        <li><b>Volatilité annualisée :</b> 12,1%</li>
+        <li><b>Drawdown max :</b> -6,7%</li>
+        <li><b>Exposition BTC :</b> 23% du portefeuille</li>
+        <li><b>Exposition ETH :</b> 17% du portefeuille</li>
+        <li><b>Allocation DeFi :</b> 28%</li>
+        <li><b>TVL (Total Value Locked) :</b> €1,9M</li>
+        <li><b>Dernière réallocation :</b> 15 mai 2025</li>
+        <li><b>Reporting PDF mensuel :</b> <a href="#" style="color:#3ee6e0;text-decoration:underline;">Télécharger</a></li>
+      </ul>
+    </div>
+  </main>
+
+  <footer>
+    &copy; 2025 G12. Tous droits réservés.
+    <nav>
+      <a href="#">Mentions légales</a>
+      <a href="#">Politique de confidentialité</a>
+      <a href="mailto:contact@trinitybtc.com">Contact</a>
+    </nav>
+  </footer>
+  <script>
+    // Burger menu JS
+    const burger = document.querySelector('.burger');
+    const mobileNav = document.querySelector('.mobile-nav');
+    const overlay = document.querySelector('.mobile-nav-overlay');
+
+    function toggleMobileMenu() {
+      burger.classList.toggle('active');
+      mobileNav.classList.toggle('open');
+      overlay.classList.toggle('open');
+      // Accessibilité
+      burger.setAttribute('aria-expanded', burger.classList.contains('active'));
+      mobileNav.setAttribute('aria-hidden', !burger.classList.contains('active'));
+      // Bloque le scroll derrière le menu
+      document.body.style.overflow = burger.classList.contains('active') ? 'hidden' : '';
+    }
+
+    burger.addEventListener('click', toggleMobileMenu);
+    overlay.addEventListener('click', toggleMobileMenu);
+
+    // Ferme le menu sur redimensionnement si on repasse en desktop
+    window.addEventListener('resize', function() {
+      if(window.innerWidth > 900) {
+        burger.classList.remove('active');
+        mobileNav.classList.remove('open');
+        overlay.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+    });
+  </script>
+</body>
+</html>
