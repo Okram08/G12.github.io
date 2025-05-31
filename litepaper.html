@@ -5,7 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lite Paper - G12</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
   <style>
+    html, body {
+      scroll-behavior: smooth;
+    }
     body {
       background: radial-gradient(ellipse at top right, #0a101a 0%, #05070b 100%);
       color: #eaf6ff;
@@ -13,6 +17,88 @@
       margin: 0;
       min-height: 100vh;
       overflow-x: hidden;
+    }
+    .background-shape, .background-shape-2 {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .background-shape {
+      top: -250px; left: -250px;
+      width: 900px; height: 900px;
+      background: radial-gradient(circle at 60% 40%, #3ee6e0cc 0%, #3a8dde55 60%, transparent 100%);
+      filter: blur(60px);
+      opacity: 0.6;
+      animation: blobMove 20s ease-in-out infinite alternate;
+    }
+    .background-shape-2 {
+      top: 100px; right: -200px;
+      width: 700px; height: 700px;
+      background: radial-gradient(circle at 40% 60%, #3a8ddecc 0%, #3ee6e055 60%, transparent 100%);
+      filter: blur(50px);
+      opacity: 0.5;
+      animation: blobMove2 25s ease-in-out infinite alternate;
+    }
+    @keyframes blobMove {
+      0%   { transform: scale(1) translate(0,0);}
+      40%  { transform: scale(1.1, 0.9) translate(50px, 40px);}
+      60%  { transform: scale(0.9, 1.1) translate(40px, 70px);}
+      100% { transform: scale(1.15, 0.85) translate(80px, 20px);}
+    }
+    @keyframes blobMove2 {
+      0%   { transform: scale(1) translate(0,0);}
+      40%  { transform: scale(0.9, 1.1) translate(-40px, -30px);}
+      60%  { transform: scale(1.1, 0.9) translate(-30px, -60px);}
+      100% { transform: scale(0.85, 1.15) translate(-70px, -20px);}
+    }
+    .logo-glow {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      margin-bottom: 0rem; /* Espace minimal */
+    }
+    .logo-glow::before {
+      content: "";
+      position: absolute;
+      width: 340px;
+      height: 340px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #3ee6e033 0%, #3a8dde22 70%, transparent 100%);
+      filter: blur(32px);
+      opacity: 0.28;
+      z-index: 0;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .logo-g12 {
+      height: 240px;
+      z-index: 1;
+      position: relative;
+      background: transparent !important;
+      border-radius: 22px;
+      box-shadow: none;
+      transition: opacity 0.3s;
+      filter: brightness(1) drop-shadow(0 2px 24px #3ee6e022);
+      max-width: 90vw;
+      width: auto;
+      object-fit: contain;
+      display: block;
+    }
+    .logo-g12:hover {
+      filter: brightness(1.07) drop-shadow(0 4px 32px #3ee6e044);
+      opacity: 1;
+    }
+    @media (max-width: 900px) {
+      .logo-g12 { height: 160px; }
+      .logo-glow::before { width: 210px; height: 210px; }
+    }
+    @media (max-width: 700px) {
+      .logo-g12 { height: 90px; }
+      .logo-glow::before { width: 100px; height: 100px; }
     }
     header {
       padding: 4rem 2rem 2rem 2rem;
@@ -22,7 +108,8 @@
       font-size: 3.2rem;
       font-weight: 700;
       letter-spacing: 0.12em;
-      margin-bottom: 1.2rem;
+      margin-bottom: 0.3rem;
+      margin-top: 0.2rem;
       background: linear-gradient(90deg, #3a8dde 20%, #3ee6e0 80%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -58,6 +145,11 @@
       gap: 2rem;
       margin-top: 2rem;
       margin-bottom: 2.5rem;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      transition: background 0.3s;
     }
     nav a {
       color: #3ee6e0;
@@ -68,6 +160,7 @@
       transition: color 0.2s;
       letter-spacing: 1px;
       padding: 0.2rem 0.5rem;
+      outline: none;
     }
     nav a::after {
       content: '';
@@ -81,13 +174,15 @@
       left: 0;
       border-radius: 2px;
     }
-    nav a:hover,
-    nav a:focus {
+    nav a:hover, nav a:focus {
       color: #fff;
     }
-    nav a:hover::after,
-    nav a:focus::after {
+    nav a:hover::after, nav a:focus::after {
       width: 100%;
+    }
+    nav a:focus {
+      outline: 2px solid #3ee6e0;
+      outline-offset: 2px;
     }
     .home-btn {
       font-family: 'Inter', sans-serif;
@@ -195,31 +290,44 @@
     }
     @media (max-width: 700px) {
       header h1 { font-size: 2.1rem; }
-      nav { gap: 1.2rem; }
+      nav { gap: 1.2rem; flex-direction: column; }
       .litepaper-section { padding: 1.5rem 0.7rem; }
       .litepaper-section table, .litepaper-section th, .litepaper-section td { font-size: 0.95rem; }
+    }
+    footer {
+      background: #05070b;
+      padding: 2rem;
+      text-align: center;
+      color: #888;
+      font-size: 0.9rem;
+      margin-top: 4rem;
+      letter-spacing: 1px;
     }
   </style>
 </head>
 <body>
+  <div class="background-shape"></div>
+  <div class="background-shape-2"></div>
   <header>
+    <div class="logo-glow">
+      <img src="G12.png" alt="Logo G12" class="logo-g12">
+    </div>
     <h1>Lite Paper</h1>
     <p>Comprendre la vision derrière Trinity Crypto Fund</p>
-
+    <nav>
+      <a href="index.html">Accueil</a>
+      <a href="litepaper.html">Lite Paper</a>
+      <a href="blog.html">Blog</a>
+    </nav>
   </header>
-
-  <div style="display: flex; justify-content: center; margin-top: 2rem;">
-    <a href="index.html" class="home-btn">← Accueil</a>
-  </div>
 
   <section class="litepaper-section">
     <h2><span class="emoji">🌟</span>Résumé Attractif</h2>
     <p>
-      Le <strong>[Nom du Fonds]</strong> est un fonds d'investissement crypto nouvelle génération, conçu pour offrir une exposition intelligente, rigoureuse et performante aux marchés d'actifs numériques.<br>
+      Le <strong>G12</strong> est un fonds d'investissement crypto nouvelle génération, conçu pour offrir une exposition intelligente, rigoureuse et performante aux marchés d'actifs numériques.<br>
       Notre approche hybride combine analyse algorithmique avancée, prise de décision humaine stratégique, et gestion active du risque. Nous construisons des portefeuilles diversifiés et adaptatifs, capables de s'ajuster aux cycles de marché et de protéger le capital en période de volatilité.<br>
       <strong>Notre mission :</strong> rendre l'investissement crypto sûr, compréhensible et accessible, tout en capitalisant sur les opportunités détectées par nos modèles algorithmiques internes.
     </p>
-
     <h2><span class="emoji">🔎</span>Problème Identifié</h2>
     <ul>
       <li>Trop de volatilité et peu de gestion du risque</li>
@@ -316,7 +424,6 @@
       <li>Volatilité cible inférieure à celle du marché brut</li>
       <li>Transparence totale (reporting mensuel / dashboard investisseur)</li>
     </ul>
-
     <h2><span class="emoji">🏗️</span>Architecture Technique</h2>
     <h3>🔧 Stack technologique</h3>
     <ul>
