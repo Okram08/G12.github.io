@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trinity BTC - Accueil</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <style>
+    :root {
+      --primary-color: #3ee6e0;
+      --secondary-color: #3a8dde;
+      --bg-color: #0a101a;
+      --bg-dark: #05070b;
+      --text-color: #eaf6ff;
+      --muted-color: #b2c2d6;
+      --accent-light: rgba(62, 230, 224, 0.55);
+    }
+
+    html, body {
+      scroll-behavior: smooth;
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      color: var(--text-color);
+      background: radial-gradient(ellipse at top right, var(--bg-color) 0%, var(--bg-dark) 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .background-shape, .background-shape-2 {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .background-shape {
+      top: -250px; left: -250px;
+      width: 900px; height: 900px;
+      background: radial-gradient(circle at 60% 40%, var(--primary-color) 0%, var(--secondary-color) 60%, transparent 100%);
+      filter: blur(60px);
+      opacity: 0.4;
+      animation: blobMove 20s ease-in-out infinite alternate;
+    }
+    .background-shape-2 {
+      top: 100px; right: -200px;
+      width: 700px; height: 700px;
+      background: radial-gradient(circle at 40% 60%, var(--secondary-color) 0%, var(--primary-color) 60%, transparent 100%);
+      filter: blur(50px);
+      opacity: 0.3;
+      animation: blobMove2 25s ease-in-out infinite alternate;
+    }
+
+    @keyframes blobMove {
+      0% { transform: scale(1) translate(0,0); }
+      50% { transform: scale(1.1) translate(50px, 60px); }
+      100% { transform: scale(1.15) translate(80px, 40px); }
+    }
+    @keyframes blobMove2 {
+      0% { transform: scale(1) translate(0,0); }
+      50% { transform: scale(0.9) translate(-40px, -30px); }
+      100% { transform: scale(0.85) translate(-70px, -20px); }
+    }
+
+    header {
+      padding: 4rem 2rem 2rem;
+      text-align: center;
+      position: relative;
+    }
+    .logo-glow {
+      display: flex;
+      justify-content: center;
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+    .logo-glow::before {
+      content: "";
+      position: absolute;
+      width: 340px; height: 340px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--primary-color) 0%, var(--secondary-color) 70%, transparent 100%);
+      filter: blur(32px);
+      opacity: 0.25;
+      z-index: 0;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .logo-g12 {
+      height: 200px;
+      z-index: 1;
+      filter: drop-shadow(0 2px 24px var(--accent-light));
+      max-width: 90vw;
+      object-fit: contain;
+    }
+
+    /* --- Desktop NAV --- */
+    nav.desktop-nav {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin: 1.5rem auto 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(5,7,11,0.8);
+      backdrop-filter: blur(4px);
+      padding: 0.8rem;
+      border-radius: 12px;
+      max-width: 800px;
+    }
+    nav.desktop-nav a {
+      color: var(--primary-color);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1rem;
+      position: relative;
+      padding: 0.3rem 0.6rem;
+      transition: color 0.2s;
+    }
+    nav.desktop-nav a:hover, nav.desktop-nav a:focus {
+      color: #fff;
+    }
+    nav.desktop-nav a::after {
+      content: '';
+      position: absolute;
+      height: 2px;
+      width: 0;
+      bottom: 0;
+      left: 0;
+      background: var(--primary-color);
+      transition: width 0.3s;
+    }
+    nav.desktop-nav a:hover::after, nav.desktop-nav a:focus::after {
+      width: 100%;
+    }
+
+    /* --- Burger icon --- */
+    .burger {
+      display: none;
+      position: absolute;
+      top: 2.2rem;
+      right: 2rem;
+      width: 38px;
+      height: 38px;
+      background: none;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      z-index: 1001;
+    }
+    .burger span {
+      display: block;
+      width: 28px;
+      height: 4px;
+      margin: 6px auto;
+      background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+      border-radius: 2px;
+      transition: 0.4s;
+    }
+    .burger.active span:nth-child(1) {
+      transform: translateY(10px) rotate(45deg);
+    }
+    .burger.active span:nth-child(2) {
+      opacity: 0;
+    }
+    .burger.active span:nth-child(3) {
+      transform: translateY(-10px) rotate(-45deg);
+    }
+
+    /* --- Mobile NAV overlay --- */
+    .mobile-nav-overlay {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(5,7,11,0.85);
+      backdrop-filter: blur(4px);
+      transition: opacity 0.3s;
+    }
+    .mobile-nav-overlay.open {
+      display: block;
+      animation: fadeIn 0.25s;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    nav.mobile-nav {
+      position: fixed;
+      top: 0; right: 0;
+      width: 80vw; max-width: 320px;
+      height: 100vh;
+      background: rgba(18,22,32,0.98);
+      box-shadow: -2px 0 18px rgba(62,230,224,0.13);
+      border-left: 1.5px solid rgba(62,230,224,0.12);
+      z-index: 1002;
+      transform: translateX(100%);
+      transition: transform 0.3s;
+      display: flex;
+      flex-direction: column;
+      padding: 2.5rem 1.5rem;
+      gap: 2rem;
+    }
+    nav.mobile-nav.open {
+      transform: translateX(0);
+    }
+    nav.mobile-nav a {
+      color: var(--primary-color);
+      font-size: 1.15rem;
+      font-weight: 600;
+      text-decoration: none;
+      margin-bottom: 1rem;
+      letter-spacing: 0.03em;
+      transition: color 0.2s;
+    }
+    nav.mobile-nav a:hover, nav.mobile-nav a:focus {
+      color: #fff;
+    }
+
+    /* Hide desktop nav and show burger on mobile */
+    @media (max-width: 900px) {
+      nav.desktop-nav {
+        display: none;
+      }
+      .burger {
+        display: block;
+      }
+    }
+    @media (min-width: 901px) {
+      .mobile-nav-overlay,
+      nav.mobile-nav {
+        display: none !important;
+      }
+    }
+
+    /* --- Le reste de ton CSS (cartes, boutons, footer...) reste inchangé --- */
+    .cta-btn {
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+      color: #0a101a;
+      padding: 1rem 2rem;
+      border-radius: 40px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      margin: 1rem auto 2rem;
+      display: inline-block;
+      transition: all 0.2s ease-in-out;
+      animation: pulse 3s infinite;
+    }
+    .cta-btn:hover {
+      transform: scale(1.05);
+      color: white;
+      background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 var(--accent-light); }
+      70% { box-shadow: 0 0 0 12px transparent; }
+      100% { box-shadow: 0 0 0 0 transparent; }
+    }
+
+    .glass-card {
+      background: rgba(18,22,32,0.92);
+      border-radius: 20px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+      padding: 2.5rem 1.5rem;
+      max-width: 650px;
+      margin: 2rem auto;
+      text-align: center;
+      border: 1px solid rgba(62,230,224,0.08);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .glass-card:hover {
+      transform: scale(1.015);
+      box-shadow: 0 10px 40px var(--accent-light);
+    }
+    .glass-card h2 {
+      font-size: 1.8rem;
+      background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+    .glass-card p {
+      font-size: 1.1rem;
+      color: var(--muted-color);
+      margin-bottom: 1.5rem;
+    }
+
+    .testimonials-wrapper {
+      overflow-x: auto;
+      background: rgba(18,22,32,0.6);
+      padding: 2rem 1rem;
+    }
+    .testimonials {
+      display: flex;
+      gap: 1rem;
+      min-width: fit-content;
+    }
+    .testimonial {
+      flex: 0 0 auto;
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      border: 1px solid rgba(62,230,224,0.1);
+      padding: 1.5rem;
+      width: 280px;
+      color: var(--text-color);
+      font-size: 0.95rem;
+    }
+    .testimonial span {
+      display: block;
+      margin-top: 1rem;
+      color: var(--primary-color);
+      font-weight: bold;
+    }
+    footer {
+      background: var(--bg-dark);
+      padding: 2rem;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #888;
+    }
+    footer nav {
+      margin-top: 1rem;
+    }
+    footer nav a {
+      color: #888;
+      margin: 0 0.5rem;
+      text-decoration: none;
+    }
+    footer nav a:hover {
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="background-shape"></div>
+  <div class="background-shape-2"></div>
+  <header>
+    <div class="logo-glow">
+      <video class="logo-g12" src="G12.png" autoplay muted playsinline poster="G12.png"></video>
+    </div>
+    <p>Rethinking Predictive Intelligence.<br>Transformez la donnée en stratégie gagnante pour la DeFi.</p>
+    <!-- Desktop NAV -->
+    <nav class="desktop-nav">
+      <a href="#a-propos">À propos</a>
+      <a href="#produit">Notre Algorithme</a>
+      <a href="#performances">Performances</a>
+      <a href="blog.html">Blog</a>
+      <a href="litepaper.html">Lite Paper</a>
+    </nav>
+    <!-- Burger icon -->
+    <button class="burger" aria-label="Ouvrir le menu" aria-controls="mobile-menu" aria-expanded="false">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <!-- Mobile NAV overlay and menu -->
+    <div class="mobile-nav-overlay"></div>
+    <nav class="mobile-nav" id="mobile-menu" aria-hidden="true">
+      <a href="#a-propos">À propos</a>
+      <a href="#produit">Notre Algorithme</a>
+      <a href="#performances">Performances</a>
+      <a href="blog.html">Blog</a>
+      <a href="litepaper.html">Lite Paper</a>
+    </nav>
+    <a href="#produit" class="cta-btn">Découvrir notre technologie</a>
+  </header>
+
+  <section id="produit" class="glass-card">
+    <h2>Notre Algorithme</h2>
+    <p>Un agent personnalisé pour chaque trader. Analyse, prédiction, exécution : votre avantage dans la finance décentralisée.</p>
+    <a href="litepaper.html" class="cta-btn">En savoir plus</a>
+  </section>
+
+  <section id="a-propos" class="glass-card">
+    <h2>À propos de nous</h2>
+    <p>Nous sommes trois amis passionnés de finance et de technologie. Ensemble, nous avons lancé Trinity BTC pour offrir une nouvelle manière d’investir grâce à un agent crypto ultra performant.</p>
+  </section>
+
+  <section id="performances" class="glass-card">
+    <h2>Performances & Transparence</h2>
+    <p>Suivez nos performances en direct. Notre approche transparente vous permet de voir nos résultats, notre allocation d’actifs et nos décisions en toute confiance.</p>
+  </section>
+
+  <section class="glass-card">
+    <h2>Contactez-nous</h2>
+    <p>Email : <a href="mailto:contact@trinitybtc.com" style="color:var(--primary-color)">contact@trinitybtc.com</a></p>
+    <p>Suivez-nous sur Twitter, LinkedIn, et Telegram.</p>
+  </section>
+
+  <div class="testimonials-wrapper">
+    <div class="testimonials">
+      <div class="testimonial">
+        <p>"L'algorithme de G12 m'a permis d'arrêter d'investir dans le miscanthus. Bluffant !"</p>
+        <span>— Mathieu G., Boussu</span>
+      </div>
+      <div class="testimonial">
+        <p>"Une interface propre, une transparence totale comme moi avec ma meuf."</p>
+        <span>— Louis J., Tournai</span>
+      </div>
+      <div class="testimonial">
+        <p>"Je n’imaginais pas un jour cuisiner. Merci G12, grâce à vous j'ai désormais un chef à domicile !"</p>
+        <span>— Ilona L., Soignies</span>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 Trinity BTC. Tous droits réservés.</p>
+    <nav>
+      <a href="#">Mentions légales</a>
+      <a href="#">Politique de confidentialité</a>
+      <a href="mailto:contact@trinitybtc.com">Contact</a>
+    </nav>
+  </footer>
+  <script>
+    // Burger menu JS
+    const burger = document.querySelector('.burger');
+    const mobileNav = document.querySelector('.mobile-nav');
+    const overlay = document.querySelector('.mobile-nav-overlay');
+
+    function toggleMobileMenu() {
+      burger.classList.toggle('active');
+      mobileNav.classList.toggle('open');
+      overlay.classList.toggle('open');
+      // Accessibilité
+      burger.setAttribute('aria-expanded', burger.classList.contains('active'));
+      mobileNav.setAttribute('aria-hidden', !burger.classList.contains('active'));
+      // Bloque le scroll derrière le menu
+      document.body.style.overflow = burger.classList.contains('active') ? 'hidden' : '';
+    }
+
+    burger.addEventListener('click', toggleMobileMenu);
+    overlay.addEventListener('click', toggleMobileMenu);
+
+    // Ferme le menu sur redimensionnement si on repasse en desktop
+    window.addEventListener('resize', function() {
+      if(window.innerWidth > 900) {
+        burger.classList.remove('active');
+        mobileNav.classList.remove('open');
+        overlay.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+    });
+  </script>
+</body>
+</html>
