@@ -610,6 +610,51 @@
         font-size: 1.7rem;
       }
     }
+#compound-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 0 auto;
+  max-width: 320px;
+}
+#compound-form label {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: var(--muted-color);
+  font-weight: 500;
+}
+#compound-form input {
+  width: 100%;
+  padding: 0.8rem;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: rgba(255,255,255,0.05);
+  color: var(--text-color);
+  margin-bottom: 0.8rem;
+  font-size: 1.1rem;
+  transition: all 0.25s ease;
+}
+#compound-form input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px var(--accent-light);
+}
+#compound-form button {
+  margin: 0.5rem auto 0;
+}
+#resultat {
+  margin-top: 1.5rem;
+  font-size: 1.2rem;
+  color: var(--muted-color);
+  background: rgba(18,22,32,0.7);
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+}
+#resultat strong {
+  color: var(--primary-color);
+}
+</style>
   </style>
 </head>
 <body>
@@ -681,6 +726,21 @@
     <h2>À propos de G12</h2>
     <p>Nous sommes trois amis passionnés de finance et de technologie. Notre mission : rendre l’investissement crypto accessible, transparent et performant pour tous grâce à une approche hybride entre intelligence artificielle et expertise humaine.</p>
   </section>
+
+<section class="glass-card" tabindex="0">
+  <h2>Estimateur d’intérêts composés</h2>
+  <p>Simulez vos gains potentiels avec notre algorithme.</p>
+  <form id="compound-form">
+    <label for="montant">Montant initial (€) :</label>
+    <input type="number" id="montant" min="100" value="100" step="any" required>
+    <label for="taux">Taux d’intérêt annuel (%) :</label>
+    <input type="number" id="taux" value="5" step="0.1" required>
+    <label for="annees">Nombre d’années :</label>
+    <input type="number" id="annees" value="5" min="1" required>
+    <button type="submit" class="cta-btn">Calculer</button>
+  </form>
+  <div id="resultat"></div>
+</section>
 
   <section class="blog-extract" aria-label="Derniers articles du blog">
     <div class="blog-extract-title">Derniers articles du blog</div>
@@ -781,5 +841,44 @@
       });
     });
   </script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Estimateur d'intérêts composés
+  document.getElementById('compound-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const montant = parseFloat(document.getElementById('montant').value);
+    const taux = parseFloat(document.getElementById('taux').value) / 100;
+    const annees = parseInt(document.getElementById('annees').value);
+    
+    // Animation de chargement
+    const resultatDiv = document.getElementById('resultat');
+    resultatDiv.innerHTML = '<div style="text-align:center;margin:1rem 0;color:var(--muted-color)">Calcul en cours...</div>';
+    
+    // Simulation de délai pour l’animation
+    setTimeout(() => {
+      const resultat = montant * Math.pow(1 + taux, annees);
+      resultatDiv.innerHTML = `
+        <p>En <strong>${annees} ans</strong>, votre investissement de <strong>${montant.toFixed(2)} €</strong> atteindra<br>
+        <strong style="color:var(--primary-color);font-size:1.3rem;">${resultat.toFixed(2)} €</strong><br>
+        avec un taux annuel de <strong>${(taux*100).toFixed(2)} %</strong>.</p>
+      `;
+      // Effet de fade-in
+      resultatDiv.style.opacity = '0';
+      setTimeout(() => {
+        resultatDiv.style.opacity = '1';
+        resultatDiv.style.transition = 'opacity 0.4s ease';
+      }, 10);
+    }, 400);
+  });
+
+  // Optionnel : calcul à chaque changement (pour une expérience plus dynamique)
+  // const inputs = document.querySelectorAll('#compound-form input');
+  // inputs.forEach(input => {
+  //   input.addEventListener('input', function() {
+  //     document.getElementById('resultat').innerHTML = '';
+  //   });
+  // });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 </html>
