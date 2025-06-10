@@ -2,30 +2,30 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Connexion MetaMask</title>
+  <title>Connexion MetaMask - Solde Base</title>
   <style>
-    /* Police et couleurs du site */
+    /* même style que précédemment */
     body {
-      font-family: 'Poppins', sans-serif; /* même police que ton site */
-      background-color: #111; /* fond sombre */
-      color: #eee; /* texte clair */
+      font-family: 'Poppins', sans-serif;
+      background-color: #111;
+      color: #eee;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       height: 100vh;
       margin: 0;
+      padding: 1rem;
+      text-align: center;
     }
-
     h1 {
       font-weight: 600;
       font-size: 2.5rem;
       margin-bottom: 1.5rem;
       color: #f3f3f3;
     }
-
     button {
-      background: #00c8f8; /* bleu clair */
+      background: #00c8f8;
       border: none;
       padding: 0.8rem 2rem;
       border-radius: 30px;
@@ -41,13 +41,18 @@
       background: #00a6d6;
       box-shadow: 0 8px 20px rgba(0, 166, 214, 0.6);
     }
-
     #status {
       font-size: 1.1rem;
       font-weight: 400;
       color: #bbb;
       max-width: 90vw;
-      text-align: center;
+      margin-bottom: 0.5rem;
+      word-break: break-word;
+    }
+    #balance {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #0f0; /* vert clair */
     }
   </style>
 </head>
@@ -55,25 +60,48 @@
   <h1>Connexion MetaMask</h1>
   <button id="connectButton">Connecter MetaMask</button>
   <p id="status"></p>
+  <p id="balance"></p>
 
+  <!-- ethers.js CDN -->
+  <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js" type="application/javascript"></script>
   <script>
     const connectButton = document.getElementById('connectButton');
     const status = document.getElementById('status');
+    const balanceEl = document.getElementById('balance');
+
+    // RPC Base mainnet
+    const baseRpcUrl = 'https://mainnet.base.org';
 
     async function connectMetaMask() {
       if (typeof window.ethereum !== 'undefined') {
         try {
           const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-          status.innerText = `Connecté en tant que : ${accounts[0]}`;
-          status.style.color = '#0f0'; // vert clair quand connecté
+          const account = accounts[0];
+          status.innerText = `Connecté en tant que : ${account}`;
+          status.style.color = '#0f0';
+
+          // Création provider ethers connecté à Base RPC
+          const provider = new ethers.providers.JsonRpcProvider(baseRpcUrl);
+
+          // Récupérer le solde sur Base (en wei)
+          const balanceWei = await provider.getBalance(account);
+
+          // Convertir en ETH
+          const balanceEth = ethers.utils.formatEther(balanceWei);
+
+          balanceEl.innerText = `Solde sur Base : ${balanceEth} ETH`;
+          balanceEl.style.color = '#0f0';
+
         } catch (error) {
           status.innerText = 'Connexion refusée';
-          status.style.color = '#f55'; // rouge erreur
+          status.style.color = '#f55';
+          balanceEl.innerText = '';
           console.error(error);
         }
       } else {
         status.innerText = 'MetaMask n’est pas installé. Veuillez installer MetaMask.';
         status.style.color = '#f55';
+        balanceEl.innerText = '';
       }
     }
 
