@@ -2,7 +2,54 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Intégration MetaMask</title>
+  <title>Connexion MetaMask</title>
+  <style>
+    /* Police et couleurs du site */
+    body {
+      font-family: 'Poppins', sans-serif; /* même police que ton site */
+      background-color: #111; /* fond sombre */
+      color: #eee; /* texte clair */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    h1 {
+      font-weight: 600;
+      font-size: 2.5rem;
+      margin-bottom: 1.5rem;
+      color: #f3f3f3;
+    }
+
+    button {
+      background: #00c8f8; /* bleu clair */
+      border: none;
+      padding: 0.8rem 2rem;
+      border-radius: 30px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: #111;
+      transition: background 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0, 200, 248, 0.4);
+      margin-bottom: 1rem;
+    }
+    button:hover {
+      background: #00a6d6;
+      box-shadow: 0 8px 20px rgba(0, 166, 214, 0.6);
+    }
+
+    #status {
+      font-size: 1.1rem;
+      font-weight: 400;
+      color: #bbb;
+      max-width: 90vw;
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
   <h1>Connexion MetaMask</h1>
@@ -16,15 +63,17 @@
     async function connectMetaMask() {
       if (typeof window.ethereum !== 'undefined') {
         try {
-          // Demande d'accès au compte MetaMask
           const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
           status.innerText = `Connecté en tant que : ${accounts[0]}`;
+          status.style.color = '#0f0'; // vert clair quand connecté
         } catch (error) {
           status.innerText = 'Connexion refusée';
+          status.style.color = '#f55'; // rouge erreur
           console.error(error);
         }
       } else {
         status.innerText = 'MetaMask n’est pas installé. Veuillez installer MetaMask.';
+        status.style.color = '#f55';
       }
     }
 
