@@ -2,26 +2,33 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Test Ethers.js</title>
+  <title>Intégration MetaMask</title>
 </head>
 <body>
-  <button id="connectWallet">Connecter mon wallet</button>
-  <div id="status"></div>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+  <h1>Connexion MetaMask</h1>
+  <button id="connectButton">Connecter MetaMask</button>
+  <p id="status"></p>
+
   <script>
-    window.onload = function() {
-      document.getElementById('connectWallet').onclick = async () => {
-        if (!window.ethereum) {
-          alert("Installez MetaMask !");
-          return;
+    const connectButton = document.getElementById('connectButton');
+    const status = document.getElementById('status');
+
+    async function connectMetaMask() {
+      if (typeof window.ethereum !== 'undefined') {
+        try {
+          // Demande d'accès au compte MetaMask
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          status.innerText = `Connecté en tant que : ${accounts[0]}`;
+        } catch (error) {
+          status.innerText = 'Connexion refusée';
+          console.error(error);
         }
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-        const signer = provider.getSigner();
-        const address = await signer.getAddress();
-        document.getElementById('status').innerText = "Wallet connecté : " + address;
-      };
-    };
+      } else {
+        status.innerText = 'MetaMask n’est pas installé. Veuillez installer MetaMask.';
+      }
+    }
+
+    connectButton.addEventListener('click', connectMetaMask);
   </script>
 </body>
 </html>
