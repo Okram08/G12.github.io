@@ -2,65 +2,26 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Connexion MetaMask - Solde Base</title>
+  <title>StableVault Base - Dépôt USDC</title>
   <style>
-    /* même style que précédemment */
-    body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #111;
-      color: #eee;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-      padding: 1rem;
-      text-align: center;
-    }
-    h1 {
-      font-weight: 600;
-      font-size: 2.5rem;
-      margin-bottom: 1.5rem;
-      color: #f3f3f3;
-    }
-    button {
-      background: #00c8f8;
-      border: none;
-      padding: 0.8rem 2rem;
-      border-radius: 30px;
-      font-size: 1.2rem;
-      font-weight: 600;
-      cursor: pointer;
-      color: #111;
-      transition: background 0.3s ease;
-      box-shadow: 0 5px 15px rgba(0, 200, 248, 0.4);
-      margin-bottom: 1rem;
-    }
-    button:hover {
-      background: #00a6d6;
-      box-shadow: 0 8px 20px rgba(0, 166, 214, 0.6);
-    }
-    #status {
-      font-size: 1.1rem;
-      font-weight: 400;
-      color: #bbb;
-      max-width: 90vw;
-      margin-bottom: 0.5rem;
-      word-break: break-word;
-    }
-    #balance {
-      font-size: 1.3rem;
-      font-weight: 600;
-      color: #0f0; /* vert clair */
-    }
+    /* (Garde ton style existant, j’enlève pour la clarté ici) */
   </style>
 </head>
 <body>
-  <h1>Connexion MetaMask</h1>
+  <h1>StableVault Base - Dépôt USDC</h1>
   <button id="connectButton">Connecter MetaMask</button>
   <p id="status"></p>
   <p id="balance"></p>
+
+  <div id="vault" style="display:none;">
+    <h2>Déposer USDC</h2>
+    <input type="number" id="depositAmount" placeholder="Montant USDC" min="0" step="0.01" />
+    <button id="depositButton">Déposer</button>
+    <p id="depositStatus"></p>
+
+    <h2>Solde dans le Vault</h2>
+    <p id="userShares"></p>
+  </div>
 
   <!-- ethers.js CDN -->
   <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js" type="application/javascript"></script>
@@ -68,44 +29,128 @@
     const connectButton = document.getElementById('connectButton');
     const status = document.getElementById('status');
     const balanceEl = document.getElementById('balance');
+    const vaultDiv = document.getElementById('vault');
+    const depositAmountInput = document.getElementById('depositAmount');
+    const depositButton = document.getElementById('depositButton');
+    const depositStatus = document.getElementById('depositStatus');
+    const userSharesEl = document.getElementById('userShares');
 
-    // RPC Base mainnet
+    // Config Base RPC & adresses
     const baseRpcUrl = 'https://mainnet.base.org';
+    const USDC_ADDRESS = '0xBaseUSDCAddress'; // Remplace par l'adresse USDC sur Base réelle
+    const VAULT_ADDRESS = '0xTonVaultTrackerAddress'; // Adresse de ton contrat VaultTracker
+
+    // ABI simplifié ERC20 pour approve & balanceOf
+    const ERC20_ABI = [
+      "function balanceOf(address owner) view returns (uint256)",
+      "function decimals() view returns (uint8)",
+      "function approve(address spender, uint256 amount) returns (bool)",
+      "function allowance(address owner, address spender) view returns (uint256)"
+    ];
+
+    // ABI VaultTracker simplifié (deposit + shares)
+    const VAULT_ABI = [
+      "function deposit(uint256 amount) external",
+      "function shares(address user) view returns (uint256)"
+    ];
+
+    let provider;
+    let signer;
+    let userAddress;
+    let usdcContract;
+    let vaultContract;
 
     async function connectMetaMask() {
       if (typeof window.ethereum !== 'undefined') {
         try {
-          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-          const account = accounts[0];
-          status.innerText = `Connecté en tant que : ${account}`;
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
+          provider = new ethers.providers.Web3Provider(window.ethereum);
+          signer = provider.getSigner();
+          userAddress = await signer.getAddress();
+          status.innerText = `Connecté : ${userAddress}`;
           status.style.color = '#0f0';
 
-          // Création provider ethers connecté à Base RPC
-          const provider = new ethers.providers.JsonRpcProvider(baseRpcUrl);
+          usdcContract = new ethers.Contract(USDC_ADDRESS, ERC20_ABI, signer);
+          vaultContract = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, signer);
 
-          // Récupérer le solde sur Base (en wei)
-          const balanceWei = await provider.getBalance(account);
+          vaultDiv.style.display = 'block';
 
-          // Convertir en ETH
-          const balanceEth = ethers.utils.formatEther(balanceWei);
-
-          balanceEl.innerText = `Solde sur Base : ${balanceEth} ETH`;
-          balanceEl.style.color = '#0f0';
+          await updateUserBalance();
+          await updateUserShares();
 
         } catch (error) {
           status.innerText = 'Connexion refusée';
           status.style.color = '#f55';
-          balanceEl.innerText = '';
           console.error(error);
         }
       } else {
-        status.innerText = 'MetaMask n’est pas installé. Veuillez installer MetaMask.';
+        status.innerText = 'MetaMask non détecté.';
         status.style.color = '#f55';
-        balanceEl.innerText = '';
+      }
+    }
+
+    async function updateUserBalance() {
+      const balance = await usdcContract.balanceOf(userAddress);
+      const decimals = await usdcContract.decimals();
+      const formatted = ethers.utils.formatUnits(balance, decimals);
+      balanceEl.innerText = `Ton solde USDC : ${formatted}`;
+      balanceEl.style.color = '#0f0';
+    }
+
+    async function updateUserShares() {
+      try {
+        const shares = await vaultContract.shares(userAddress);
+        const decimals = 6; // même decimals que USDC ici pour simplifier
+        const formattedShares = ethers.utils.formatUnits(shares, decimals);
+        userSharesEl.innerText = `Tes parts dans le Vault : ${formattedShares}`;
+        userSharesEl.style.color = '#0ff';
+      } catch(e) {
+        userSharesEl.innerText = `Erreur récupération parts : ${e.message}`;
+        userSharesEl.style.color = '#f55';
+      }
+    }
+
+    async function depositUSDC() {
+      depositStatus.innerText = '';
+      const amount = depositAmountInput.value;
+      if (!amount || isNaN(amount) || Number(amount) <= 0) {
+        depositStatus.innerText = 'Montant invalide';
+        depositStatus.style.color = '#f55';
+        return;
+      }
+
+      const decimals = 6;
+      const amountParsed = ethers.utils.parseUnits(amount, decimals);
+
+      try {
+        // Vérifier l'autorisation actuelle
+        const allowance = await usdcContract.allowance(userAddress, VAULT_ADDRESS);
+        if (allowance.lt(amountParsed)) {
+          depositStatus.innerText = 'Approbation en cours...';
+          depositStatus.style.color = '#ff0';
+          const txApprove = await usdcContract.approve(VAULT_ADDRESS, amountParsed);
+          await txApprove.wait();
+        }
+
+        depositStatus.innerText = 'Dépôt en cours...';
+        const txDeposit = await vaultContract.deposit(amountParsed);
+        await txDeposit.wait();
+
+        depositStatus.innerText = 'Dépôt réussi ! 🎉';
+        depositStatus.style.color = '#0f0';
+
+        await updateUserBalance();
+        await updateUserShares();
+
+      } catch (error) {
+        depositStatus.innerText = `Erreur : ${error.message}`;
+        depositStatus.style.color = '#f55';
+        console.error(error);
       }
     }
 
     connectButton.addEventListener('click', connectMetaMask);
+    depositButton.addEventListener('click', depositUSDC);
   </script>
 </body>
 </html>
