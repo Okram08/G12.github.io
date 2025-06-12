@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>G12 Wallet dApp</title>
+  <title>G12 Wallet Connect (avec signature)</title>
   <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
   <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
   <script src="https://unpkg.com/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
@@ -10,26 +10,12 @@
     body { font-family: sans-serif; padding: 30px; max-width: 600px; margin: auto; }
     input, button { padding: 10px; font-size: 16px; margin: 5px 0; }
     #walletAddress { margin-top: 10px; color: green; font-weight: bold; }
-    .section { margin-top: 20px; }
   </style>
 </head>
 <body>
-  <h2>G12 Token Platform</h2>
+  <h2>G12 – Connexion sécurisée</h2>
   <button onclick="connectWallet()">Connect Wallet</button>
   <p id="walletAddress">Not connected</p>
-  <p><strong>G12 Balance:</strong> <span id="g12Balance">-</span></p>
-
-  <div class="section">
-    <h3>Mint G12 (en échange d’USDC)</h3>
-    <input type="number" id="mintAmount" placeholder="Montant en USDC" />
-    <button onclick="mintG12()">Mint</button>
-  </div>
-
-  <div class="section">
-    <h3>Withdraw USDC (brûler G12)</h3>
-    <input type="number" id="withdrawAmount" placeholder="Montant à retirer" />
-    <button onclick="withdrawG12()">Withdraw</button>
-  </div>
 
   <script>
     const providerOptions = {
@@ -46,56 +32,27 @@
       providerOptions
     });
 
-    const G12_TOKEN_ADDRESS = "0xYourG12TokenAddress"; // Remplace par l'adresse du contrat G12
-
-    const G12_ABI = [
-      // Simplified ABI (à adapter selon ton contrat)
-      { "constant": true, "inputs": [{ "name": "_owner", "type": "address" }],
-        "name": "balanceOf", "outputs": [{ "name": "balance", "type": "uint256" }],
-        "type": "function" },
-      { "constant": false, "inputs": [{ "name": "amount", "type": "uint256" }],
-        "name": "mint", "outputs": [], "type": "function" },
-      { "constant": false, "inputs": [{ "name": "amount", "type": "uint256" }],
-        "name": "burn", "outputs": [], "type": "function" }
-    ];
-
-    let web3, userAddress, g12Contract;
+    let web3, userAddress;
 
     async function connectWallet() {
-      const provider = await web3Modal.connect();
-      web3 = new Web3(provider);
-      const accounts = await web3.eth.getAccounts();
-      userAddress = accounts[0];
-      document.getElementById("walletAddress").innerText = "Connected: " + userAddress;
+      try {
+        const provider = await web3Modal.connect();
+        web3 = new Web3(provider);
 
-      g12Contract = new web3.eth.Contract(G12_ABI, G12_TOKEN_ADDRESS);
+        const accounts = await web3.eth.getAccounts();
+        userAddress = accounts[0];
 
-      updateBalance();
-    }
+        const message = "Connexion à G12 – confirmez cette signature pour prouver que ce wallet vous appartient.";
+        const signature = await web3.eth.personal.sign(message, userAddress);
 
-    async function updateBalance() {
-      if (!g12Contract || !userAddress) return;
-      const balance = await g12Contract.methods.balanceOf(userAddress).call();
-      const formatted = web3.utils.fromWei(balance);
-      document.getElementById("g12Balance").innerText = formatted + " G12";
-    }
+        console.log("Signature réussie :", signature);
+        document.getElementById("walletAddress").innerText = "Connecté : " + userAddress;
 
-    async function mintG12() {
-      const amount = document.getElementById("mintAmount").value;
-      if (!amount) return alert("Saisis un montant.");
-      const weiAmount = web3.utils.toWei(amount);
-      await g12Contract.methods.mint(weiAmount).send({ from: userAddress });
-      alert("G12 minted avec succès !");
-      updateBalance();
-    }
-
-    async function withdrawG12() {
-      const amount = document.getElementById("withdrawAmount").value;
-      if (!amount) return alert("Saisis un montant.");
-      const weiAmount = web3.utils.toWei(amount);
-      await g12Contract.methods.burn(weiAmount).send({ from: userAddress });
-      alert("G12 burné, USDC sera traité manuellement.");
-      updateBalance();
+        // Tu peux stocker cette signature côté backend si besoin
+      } catch (err) {
+        console.error("Erreur de connexion ou signature annulée :", err);
+        alert("Connexion annulée.");
+      }
     }
   </script>
 </body>
