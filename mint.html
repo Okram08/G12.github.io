@@ -2,27 +2,41 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>G12 Wallet Connect (Legacy)</title>
+  <title>G12 Wallet dApp</title>
   <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
   <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
   <script src="https://unpkg.com/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
   <style>
-    body { font-family: sans-serif; padding: 30px; }
-    button { padding: 10px 20px; font-size: 16px; }
-    #walletAddress { margin-top: 20px; font-weight: bold; color: green; }
+    body { font-family: sans-serif; padding: 30px; max-width: 600px; margin: auto; }
+    input, button { padding: 10px; font-size: 16px; margin: 5px 0; }
+    #walletAddress { margin-top: 10px; color: green; font-weight: bold; }
+    .section { margin-top: 20px; }
   </style>
 </head>
 <body>
-  <h2>G12 – Connexion Wallet</h2>
+  <h2>G12 Token Platform</h2>
   <button onclick="connectWallet()">Connect Wallet</button>
-  <p id="walletAddress"></p>
+  <p id="walletAddress">Not connected</p>
+  <p><strong>G12 Balance:</strong> <span id="g12Balance">-</span></p>
+
+  <div class="section">
+    <h3>Mint G12 (en échange d’USDC)</h3>
+    <input type="number" id="mintAmount" placeholder="Montant en USDC" />
+    <button onclick="mintG12()">Mint</button>
+  </div>
+
+  <div class="section">
+    <h3>Withdraw USDC (brûler G12)</h3>
+    <input type="number" id="withdrawAmount" placeholder="Montant à retirer" />
+    <button onclick="withdrawG12()">Withdraw</button>
+  </div>
 
   <script>
     const providerOptions = {
       walletconnect: {
         package: window.WalletConnectProvider.default,
         options: {
-          infuraId: "c82e3f9a1a7a45ee8adba7bd1cba8f85" // Public Infura key, tu peux remplacer plus tard
+          infuraId: "c82e3f9a1a7a45ee8adba7bd1cba8f85"
         }
       }
     };
@@ -32,17 +46,56 @@
       providerOptions
     });
 
-    let web3;
+    const G12_TOKEN_ADDRESS = "0xYourG12TokenAddress"; // Remplace par l'adresse du contrat G12
+
+    const G12_ABI = [
+      // Simplified ABI (à adapter selon ton contrat)
+      { "constant": true, "inputs": [{ "name": "_owner", "type": "address" }],
+        "name": "balanceOf", "outputs": [{ "name": "balance", "type": "uint256" }],
+        "type": "function" },
+      { "constant": false, "inputs": [{ "name": "amount", "type": "uint256" }],
+        "name": "mint", "outputs": [], "type": "function" },
+      { "constant": false, "inputs": [{ "name": "amount", "type": "uint256" }],
+        "name": "burn", "outputs": [], "type": "function" }
+    ];
+
+    let web3, userAddress, g12Contract;
+
     async function connectWallet() {
-      try {
-        const provider = await web3Modal.connect();
-        web3 = new Web3(provider);
-        const accounts = await web3.eth.getAccounts();
-        document.getElementById("walletAddress").innerText = "Connected: " + accounts[0];
-      } catch (err) {
-        console.error(err);
-        alert("Erreur de connexion");
-      }
+      const provider = await web3Modal.connect();
+      web3 = new Web3(provider);
+      const accounts = await web3.eth.getAccounts();
+      userAddress = accounts[0];
+      document.getElementById("walletAddress").innerText = "Connected: " + userAddress;
+
+      g12Contract = new web3.eth.Contract(G12_ABI, G12_TOKEN_ADDRESS);
+
+      updateBalance();
+    }
+
+    async function updateBalance() {
+      if (!g12Contract || !userAddress) return;
+      const balance = await g12Contract.methods.balanceOf(userAddress).call();
+      const formatted = web3.utils.fromWei(balance);
+      document.getElementById("g12Balance").innerText = formatted + " G12";
+    }
+
+    async function mintG12() {
+      const amount = document.getElementById("mintAmount").value;
+      if (!amount) return alert("Saisis un montant.");
+      const weiAmount = web3.utils.toWei(amount);
+      await g12Contract.methods.mint(weiAmount).send({ from: userAddress });
+      alert("G12 minted avec succès !");
+      updateBalance();
+    }
+
+    async function withdrawG12() {
+      const amount = document.getElementById("withdrawAmount").value;
+      if (!amount) return alert("Saisis un montant.");
+      const weiAmount = web3.utils.toWei(amount);
+      await g12Contract.methods.burn(weiAmount).send({ from: userAddress });
+      alert("G12 burné, USDC sera traité manuellement.");
+      updateBalance();
     }
   </script>
 </body>
