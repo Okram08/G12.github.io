@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>G12 Wallet Connect</title>
+  <script src="https://unpkg.com/@walletconnect/web3modal@3.6.0/dist/web3modal.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
+  <script src="https://unpkg.com/@walletconnect/ethereum-provider@2.10.3/dist/index.umd.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 40px; max-width: 600px; margin: auto; }
+    button { padding: 10px 20px; font-size: 16px; margin-top: 10px; }
+    #walletAddress { margin-top: 15px; color: green; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>G12 dApp – Connect Wallet</h2>
+  <button onclick="connectWallet()">Connect Wallet</button>
+  <p id="walletAddress"></p>
+
+  <script>
+    const projectId = "YOUR_PROJECT_ID"; // Remplace ça avec le tien (cloud.walletconnect.com)
+
+    const metadata = {
+      name: "G12 dApp",
+      description: "Access the G12 token platform",
+      url: "https://yourdomain.com",
+      icons: ["https://yourdomain.com/icon.png"]
+    };
+
+    const modal = new window.Web3Modal({
+      projectId,
+      walletConnectVersion: 2,
+      themeMode: "light",
+      themeVariables: {
+        "--w3m-accent": "#10b981" // Vert G12
+      },
+      metadata
+    });
+
+    let provider, signer;
+
+    async function connectWallet() {
+      try {
+        const ethereumProvider = await modal.connect();
+        provider = new ethers.BrowserProvider(ethereumProvider);
+        signer = await provider.getSigner();
+        const address = await signer.getAddress();
+        document.getElementById("walletAddress").innerText = "Connected: " + address;
+      } catch (err) {
+        console.error("Wallet connection failed:", err);
+        alert("Connection failed or cancelled.");
+      }
+    }
+  </script>
+</body>
+</html>
