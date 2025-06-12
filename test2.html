@@ -1,156 +1,87 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
   <meta charset="UTF-8" />
-  <title>StableVault Base - Dépôt USDC</title>
+  <title>G12 Mint dApp</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
   <style>
-    /* (Garde ton style existant, j’enlève pour la clarté ici) */
+    body { font-family: Arial; padding: 40px; max-width: 600px; margin: auto; }
+    button, input { margin: 10px 0; padding: 10px; width: 100%; }
+    .connected { color: green; }
   </style>
 </head>
 <body>
-  <h1>StableVault Base - Dépôt USDC</h1>
-  <button id="connectButton">Connecter MetaMask</button>
-  <p id="status"></p>
-  <p id="balance"></p>
-
-  <div id="vault" style="display:none;">
-    <h2>Déposer USDC</h2>
-    <input type="number" id="depositAmount" placeholder="Montant USDC" min="0" step="0.01" />
-    <button id="depositButton">Déposer</button>
-    <p id="depositStatus"></p>
-
-    <h2>Solde dans le Vault</h2>
-    <p id="userShares"></p>
+  <h1>Mint G12 Tokens</h1>
+  <button id="connectButton">Connect Wallet</button>
+  <div id="walletInfo" style="display: none">
+    <p>Connected: <span id="walletAddress" class="connected"></span></p>
+    <label>Amount of USDC to deposit:</label>
+    <input type="number" id="usdcAmount" placeholder="Enter USDC amount" />
+    <button id="mintButton">Mint G12</button>
+    <button id="withdrawButton">Withdraw USDC</button>
   </div>
 
-  <!-- ethers.js CDN -->
-  <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js" type="application/javascript"></script>
   <script>
-    const connectButton = document.getElementById('connectButton');
-    const status = document.getElementById('status');
-    const balanceEl = document.getElementById('balance');
-    const vaultDiv = document.getElementById('vault');
-    const depositAmountInput = document.getElementById('depositAmount');
-    const depositButton = document.getElementById('depositButton');
-    const depositStatus = document.getElementById('depositStatus');
-    const userSharesEl = document.getElementById('userShares');
+    let signer;
+    let provider;
 
-    // Config Base RPC & adresses
-    const baseRpcUrl = 'https://mainnet.base.org';
-    const USDC_ADDRESS = '0xBaseUSDCAddress'; // Remplace par l'adresse USDC sur Base réelle
-    const VAULT_ADDRESS = '0xTonVaultTrackerAddress'; // Adresse de ton contrat VaultTracker
-
-    // ABI simplifié ERC20 pour approve & balanceOf
-    const ERC20_ABI = [
-      "function balanceOf(address owner) view returns (uint256)",
-      "function decimals() view returns (uint8)",
-      "function approve(address spender, uint256 amount) returns (bool)",
+    // Replace with actual contract address and ABI
+    const G12_CONTRACT_ADDRESS = "0xYourG12Contract";
+    const USDC_CONTRACT_ADDRESS = "0xYourUSDCContract";
+    const G12_ABI = [
+      "function mint(uint256 amount) external",
+      "function withdraw(uint256 amount) external"
+    ];
+    const USDC_ABI = [
+      "function approve(address spender, uint256 amount) external returns (bool)",
       "function allowance(address owner, address spender) view returns (uint256)"
     ];
 
-    // ABI VaultTracker simplifié (deposit + shares)
-    const VAULT_ABI = [
-      "function deposit(uint256 amount) external",
-      "function shares(address user) view returns (uint256)"
-    ];
-
-    let provider;
-    let signer;
-    let userAddress;
-    let usdcContract;
-    let vaultContract;
-
-    async function connectMetaMask() {
-      if (typeof window.ethereum !== 'undefined') {
-        try {
-          await window.ethereum.request({ method: 'eth_requestAccounts' });
-          provider = new ethers.providers.Web3Provider(window.ethereum);
-          signer = provider.getSigner();
-          userAddress = await signer.getAddress();
-          status.innerText = `Connecté : ${userAddress}`;
-          status.style.color = '#0f0';
-
-          usdcContract = new ethers.Contract(USDC_ADDRESS, ERC20_ABI, signer);
-          vaultContract = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, signer);
-
-          vaultDiv.style.display = 'block';
-
-          await updateUserBalance();
-          await updateUserShares();
-
-        } catch (error) {
-          status.innerText = 'Connexion refusée';
-          status.style.color = '#f55';
-          console.error(error);
-        }
+    async function connectWallet() {
+      if (window.ethereum) {
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        signer = provider.getSigner();
+        const address = await signer.getAddress();
+        document.getElementById("walletAddress").innerText = address;
+        document.getElementById("walletInfo").style.display = "block";
       } else {
-        status.innerText = 'MetaMask non détecté.';
-        status.style.color = '#f55';
+        alert("Please install Metamask!");
       }
     }
 
-    async function updateUserBalance() {
-      const balance = await usdcContract.balanceOf(userAddress);
-      const decimals = await usdcContract.decimals();
-      const formatted = ethers.utils.formatUnits(balance, decimals);
-      balanceEl.innerText = `Ton solde USDC : ${formatted}`;
-      balanceEl.style.color = '#0f0';
-    }
+    async function mintG12() {
+      const amount = document.getElementById("usdcAmount").value;
+      const usdc = new ethers.Contract(USDC_CONTRACT_ADDRESS, USDC_ABI, signer);
+      const g12 = new ethers.Contract(G12_CONTRACT_ADDRESS, G12_ABI, signer);
+      const parsedAmount = ethers.utils.parseUnits(amount, 6); // USDC has 6 decimals
 
-    async function updateUserShares() {
-      try {
-        const shares = await vaultContract.shares(userAddress);
-        const decimals = 6; // même decimals que USDC ici pour simplifier
-        const formattedShares = ethers.utils.formatUnits(shares, decimals);
-        userSharesEl.innerText = `Tes parts dans le Vault : ${formattedShares}`;
-        userSharesEl.style.color = '#0ff';
-      } catch(e) {
-        userSharesEl.innerText = `Erreur récupération parts : ${e.message}`;
-        userSharesEl.style.color = '#f55';
-      }
-    }
-
-    async function depositUSDC() {
-      depositStatus.innerText = '';
-      const amount = depositAmountInput.value;
-      if (!amount || isNaN(amount) || Number(amount) <= 0) {
-        depositStatus.innerText = 'Montant invalide';
-        depositStatus.style.color = '#f55';
-        return;
+      // Approve G12 contract to spend user's USDC
+      const allowance = await usdc.allowance(await signer.getAddress(), G12_CONTRACT_ADDRESS);
+      if (allowance.lt(parsedAmount)) {
+        const tx1 = await usdc.approve(G12_CONTRACT_ADDRESS, parsedAmount);
+        await tx1.wait();
       }
 
-      const decimals = 6;
-      const amountParsed = ethers.utils.parseUnits(amount, decimals);
-
-      try {
-        // Vérifier l'autorisation actuelle
-        const allowance = await usdcContract.allowance(userAddress, VAULT_ADDRESS);
-        if (allowance.lt(amountParsed)) {
-          depositStatus.innerText = 'Approbation en cours...';
-          depositStatus.style.color = '#ff0';
-          const txApprove = await usdcContract.approve(VAULT_ADDRESS, amountParsed);
-          await txApprove.wait();
-        }
-
-        depositStatus.innerText = 'Dépôt en cours...';
-        const txDeposit = await vaultContract.deposit(amountParsed);
-        await txDeposit.wait();
-
-        depositStatus.innerText = 'Dépôt réussi ! 🎉';
-        depositStatus.style.color = '#0f0';
-
-        await updateUserBalance();
-        await updateUserShares();
-
-      } catch (error) {
-        depositStatus.innerText = `Erreur : ${error.message}`;
-        depositStatus.style.color = '#f55';
-        console.error(error);
-      }
+      // Mint G12 tokens
+      const tx2 = await g12.mint(parsedAmount);
+      await tx2.wait();
+      alert("Minted G12 successfully!");
     }
 
-    connectButton.addEventListener('click', connectMetaMask);
-    depositButton.addEventListener('click', depositUSDC);
+    async function withdrawG12() {
+      const amount = document.getElementById("usdcAmount").value;
+      const g12 = new ethers.Contract(G12_CONTRACT_ADDRESS, G12_ABI, signer);
+      const parsedAmount = ethers.utils.parseUnits(amount, 6);
+
+      const tx = await g12.withdraw(parsedAmount);
+      await tx.wait();
+      alert("Withdrawal requested!");
+    }
+
+    document.getElementById("connectButton").onclick = connectWallet;
+    document.getElementById("mintButton").onclick = mintG12;
+    document.getElementById("withdrawButton").onclick = withdrawG12;
   </script>
 </body>
 </html>
