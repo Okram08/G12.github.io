@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>G12 – Solde multi-chain USDC & Token</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #3ee6e0;
+      --secondary-color: #3a8dde;
+      --bg-color: #0a101a;
+      --bg-dark: #05070b;
+      --text-color: #eaf6ff;
+      --muted-color: #b2c2d6;
+      --accent-light: rgba(62, 230, 224, 0.55);
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      color: var(--text-color);
+      background: radial-gradient(ellipse at top right, var(--bg-color) 0%, var(--bg-dark) 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .background-shape, .background-shape-2 {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .background-shape {
+      top: -250px; left: -250px;
+      width: 900px; height: 900px;
+      background: radial-gradient(circle at 60% 40%, var(--primary-color) 0%, var(--secondary-color) 60%, transparent 100%);
+      filter: blur(60px);
+      opacity: 0.4;
+      animation: blobMove 20s ease-in-out infinite alternate;
+    }
+    .background-shape-2 {
+      top: 100px; right: -200px;
+      width: 700px; height: 700px;
+      background: radial-gradient(circle at 40% 60%, var(--secondary-color) 0%, var(--primary-color) 60%, transparent 100%);
+      filter: blur(50px);
+      opacity: 0.3;
+      animation: blobMove2 25s ease-in-out infinite alternate;
+    }
+    @keyframes blobMove {
+      0% { transform: scale(1) translate(0,0);}
+      50% { transform: scale(1.1) translate(50px, 60px);}
+      100% { transform: scale(1.15) translate(80px, 40px);}
+    }
+    @keyframes blobMove2 {
+      0% { transform: scale(1) translate(0,0);}
+      50% { transform: scale(0.9) translate(-40px, -30px);}
+      100% { transform: scale(0.85) translate(-70px, -20px);}
+    }
+    .glass-card {
+      background: rgba(18,22,32,0.92);
+      border-radius: 20px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+      padding: 2.5rem 1.5rem;
+      max-width: 480px;
+      margin: 4rem auto 2rem auto;
+      text-align: center;
+      border: 1px solid rgba(62,230,224,0.08);
+      position: relative;
+      z-index: 1;
+    }
+    .glass-card h2 {
+      font-size: 1.6rem;
+      background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: bold;
+      margin-bottom: 1.2rem;
+      letter-spacing: 0.03em;
+    }
+    .cta-btn {
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+      color: #0a101a;
+      padding: 1rem 2rem;
+      border-radius: 40px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      margin: 1.5rem auto 2.5rem;
+      display: inline-block;
+      transition: all 0.2s ease-in-out;
+      animation: pulse 3s infinite;
+      text-decoration: none;
+      box-shadow: 0 4px 24px var(--accent-light);
+      border: none;
+      cursor: pointer;
+    }
+    .cta-btn:hover {
+      transform: scale(1.07);
+      color: white;
+      background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+      box-shadow: 0 8px 32px var(--primary-color);
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 var(--accent-light); }
+      70% { box-shadow: 0 0 0 12px transparent; }
+      100% { box-shadow: 0 0 0 0 transparent; }
+    }
+    .copy-btn {
+      background: transparent;
+      color: var(--primary-color);
+      border: 1px solid var(--primary-color);
+      border-radius: 12px;
+      padding: 0.3rem 0.8rem;
+      margin-left: 0.5rem;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.2s, color 0.2s;
+    }
+    .copy-btn:hover {
+      background: var(--primary-color);
+      color: #0a101a;
+    }
+    input {
+      padding: 0.9rem 1.2rem;
+      border-radius: 14px;
+      border: 1px solid var(--secondary-color);
+      font-size: 1.07rem;
+      margin: 8px 0;
+      background: rgba(18,22,32,0.75);
+      color: var(--text-color);
+      outline: none;
+      transition: border 0.2s;
+      width: 80%;
+      max-width: 350px;
+    }
+    input:focus {
+      border-color: var(--primary-color);
+    }
+    .results-table {
+      margin: 1.5rem auto 0;
+      width: 100%;
+      max-width: 400px;
+      border-collapse: collapse;
+      font-size: 1.03rem;
+    }
+    .results-table th, .results-table td {
+      padding: 0.7rem 0.5rem;
+      border-bottom: 1px solid rgba(62,230,224,0.08);
+      text-align: left;
+    }
+    .results-table th {
+      color: var(--primary-color);
+    }
+    .results-table td {
+      color: var(--text-color);
+    }
+    .muted {
+      color: var(--muted-color);
+      font-size: 0.97rem;
+    }
+    @media (max-width: 700px) {
+      .glass-card { padding: 1.3rem 0.7rem; }
+      .results-table { font-size: 0.98rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="background-shape"></div>
+  <div class="background-shape-2"></div>
+  <section class="glass-card">
+    <h2>Solde multi-chain USDC & Token</h2>
+    <div>
+      <input type="text" id="addressInput" placeholder="Adresse EVM (0x...)" />
+      <button class="copy-btn" onclick="copyAddress()">Copier</button>
+    </div>
+    <div>
+      <input type="text" id="tokenInput" placeholder="Adresse du token ERC20 (optionnel)" />
+    </div>
+    <button class="cta-btn" onclick="checkBalances()">Voir mes soldes</button>
+    <div id="results"></div>
+    <div class="muted" style="margin-top:1.2rem;">
+      Utilise une API multi-chain (ex : Covalent, Moralis). Nécessite une clé API.<br>
+      Les soldes sont affichés sur Ethereum, Polygon, BSC.
+    </div>
+  </section>
+  <script>
+    // Remplace par ta clé API Covalent ou Moralis !
+    const COVALENT_API_KEY = "ckey_demo"; // Mettre ta vraie clé ici
+    const CHAINS = [
+      {name: "Ethereum", id: 1},
+      {name: "Polygon", id: 137},
+      {name: "BSC", id: 56}
+    ];
+    // Adresse USDC sur chaque chain
+    const USDC = {
+      1:  "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+      137:"0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+      56: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d"
+    };
+
+    function copyAddress() {
+      const input = document.getElementById('addressInput');
+      input.select();
+      document.execCommand('copy');
+    }
+
+    async function checkBalances() {
+      const address = document.getElementById('addressInput').value.trim();
+      const tokenAddress = document.getElementById('tokenInput').value.trim().toLowerCase();
+      if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
+        alert("Adresse EVM invalide !");
+        return;
+      }
+      document.getElementById('results').innerHTML = "Chargement...";
+      let rows = `<table class="results-table">
+        <tr><th>Réseau</th><th>USDC</th><th>Token</th></tr>`;
+      for (const chain of CHAINS) {
+        try {
+          const url = `https://api.covalenthq.com/v1/${chain.id}/address/${address}/balances_v2/?key=${COVALENT_API_KEY}`;
+          const resp = await fetch(url);
+          const data = await resp.json();
+          let usdc = data.data.items.find(t =>
+            t.contract_address.toLowerCase() === USDC[chain.id].toLowerCase()
+          );
+          let token = tokenAddress ? data.data.items.find(t =>
+            t.contract_address.toLowerCase() === tokenAddress
+          ) : null;
+          rows += `<tr>
+            <td>${chain.name}</td>
+            <td>${usdc ? (usdc.balance / (10 ** usdc.contract_decimals)).toLocaleString(undefined, {maximumFractionDigits: 4}) : "0"}</td>
+            <td>${token ? (token.balance / (10 ** token.contract_decimals)).toLocaleString(undefined, {maximumFractionDigits: 4}) : "-"}</td>
+          </tr>`;
+        } catch (e) {
+          rows += `<tr><td>${chain.name}</td><td colspan="2">Erreur API</td></tr>`;
+        }
+      }
+      rows += "</table>";
+      document.getElementById('results').innerHTML = rows;
+    }
+  </script>
+</body>
+</html>
