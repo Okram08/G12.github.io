@@ -1,87 +1,115 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <title>G12 Mint dApp</title>
-  <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
-  <style>
-    body { font-family: Arial; padding: 40px; max-width: 600px; margin: auto; }
-    button, input { margin: 10px 0; padding: 10px; width: 100%; }
-    .connected { color: green; }
-  </style>
+  <!-- ... (tout le head est inchangé, cf. code précédent) -->
 </head>
 <body>
-  <h1>Mint G12 Tokens</h1>
-  <button id="connectButton">Connect Wallet</button>
-  <div id="walletInfo" style="display: none">
-    <p>Connected: <span id="walletAddress" class="connected"></span></p>
-    <label>Amount of USDC to deposit:</label>
-    <input type="number" id="usdcAmount" placeholder="Enter USDC amount" />
-    <button id="mintButton">Mint G12</button>
-    <button id="withdrawButton">Withdraw USDC</button>
-  </div>
+  <div class="background-shape"></div>
+  <div class="background-shape-2"></div>
+  <section class="glass-card">
+    <h2>Connexion sécurisée à G12</h2>
+    <button class="cta-btn" onclick="connectWallet()">Connecter mon wallet</button>
+    <p id="walletAddress">Non connecté</p>
+
+    <div id="dapp" style="display: none;">
+      <h3>Token G12</h3>
+      <p>Solde : <span id="balance">--</span> G12</p>
+
+      <input type="number" id="mintAmount" placeholder="Montant USDC pour mint G12">
+      <button class="cta-btn" onclick="mintG12()">Mint G12</button>
+
+      <input type="number" id="burnAmount" placeholder="Montant G12 à retirer">
+      <button class="cta-btn" onclick="withdrawG12()">Withdraw USDC</button>
+    </div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
+  <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
+  <script src="https://unpkg.com/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
 
   <script>
-    let signer;
-    let provider;
-
-    // Replace with actual contract address and ABI
-    const G12_CONTRACT_ADDRESS = "0xYourG12Contract";
-    const USDC_CONTRACT_ADDRESS = "0xYourUSDCContract";
+    const G12_TOKEN_ADDRESS = "0x..."; // <- adresse de ton contrat ERC20 G12
     const G12_ABI = [
-      "function mint(uint256 amount) external",
-      "function withdraw(uint256 amount) external"
+      {
+        "constant": true,
+        "inputs": [{"name": "owner", "type": "address"}],
+        "name": "balanceOf",
+        "outputs": [{"name": "balance", "type": "uint256"}],
+        "type": "function"
+      },
+      {
+        "constant": false,
+        "inputs": [{"name": "amount", "type": "uint256"}],
+        "name": "mint",
+        "outputs": [],
+        "type": "function"
+      },
+      {
+        "constant": false,
+        "inputs": [{"name": "amount", "type": "uint256"}],
+        "name": "burn",
+        "outputs": [],
+        "type": "function"
+      }
     ];
-    const USDC_ABI = [
-      "function approve(address spender, uint256 amount) external returns (bool)",
-      "function allowance(address owner, address spender) view returns (uint256)"
-    ];
+
+    const providerOptions = {
+      walletconnect: {
+        package: window.WalletConnectProvider.default,
+        options: {
+          infuraId: "c82e3f9a1a7a45ee8adba7bd1cba8f85"
+        }
+      }
+    };
+
+    const web3Modal = new window.Web3Modal.default({
+      cacheProvider: false,
+      providerOptions
+    });
+
+    let web3, userAddress, g12Contract;
 
     async function connectWallet() {
-      if (window.ethereum) {
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-        signer = provider.getSigner();
-        const address = await signer.getAddress();
-        document.getElementById("walletAddress").innerText = address;
-        document.getElementById("walletInfo").style.display = "block";
-      } else {
-        alert("Please install Metamask!");
+      try {
+        const provider = await web3Modal.connect();
+        web3 = new Web3(provider);
+
+        const accounts = await web3.eth.getAccounts();
+        userAddress = accounts[0];
+
+        const message = "Connexion à G12 – confirmez cette signature pour prouver que ce wallet vous appartient.";
+        const signature = await web3.eth.personal.sign(message, userAddress);
+
+        document.getElementById("walletAddress").innerText = "Connecté : " + userAddress;
+        document.getElementById("dapp").style.display = "block";
+
+        g12Contract = new web3.eth.Contract(G12_ABI, G12_TOKEN_ADDRESS);
+        updateBalance();
+
+      } catch (err) {
+        console.error("Erreur de connexion ou signature annulée :", err);
+        alert("Connexion annulée.");
       }
+    }
+
+    async function updateBalance() {
+      const balance = await g12Contract.methods.balanceOf(userAddress).call();
+      document.getElementById("balance").innerText = web3.utils.fromWei(balance, 'ether');
     }
 
     async function mintG12() {
-      const amount = document.getElementById("usdcAmount").value;
-      const usdc = new ethers.Contract(USDC_CONTRACT_ADDRESS, USDC_ABI, signer);
-      const g12 = new ethers.Contract(G12_CONTRACT_ADDRESS, G12_ABI, signer);
-      const parsedAmount = ethers.utils.parseUnits(amount, 6); // USDC has 6 decimals
-
-      // Approve G12 contract to spend user's USDC
-      const allowance = await usdc.allowance(await signer.getAddress(), G12_CONTRACT_ADDRESS);
-      if (allowance.lt(parsedAmount)) {
-        const tx1 = await usdc.approve(G12_CONTRACT_ADDRESS, parsedAmount);
-        await tx1.wait();
-      }
-
-      // Mint G12 tokens
-      const tx2 = await g12.mint(parsedAmount);
-      await tx2.wait();
-      alert("Minted G12 successfully!");
+      const amount = document.getElementById("mintAmount").value;
+      const weiAmount = web3.utils.toWei(amount, 'ether');
+      await g12Contract.methods.mint(weiAmount).send({ from: userAddress });
+      updateBalance();
     }
 
     async function withdrawG12() {
-      const amount = document.getElementById("usdcAmount").value;
-      const g12 = new ethers.Contract(G12_CONTRACT_ADDRESS, G12_ABI, signer);
-      const parsedAmount = ethers.utils.parseUnits(amount, 6);
-
-      const tx = await g12.withdraw(parsedAmount);
-      await tx.wait();
-      alert("Withdrawal requested!");
+      const amount = document.getElementById("burnAmount").value;
+      const weiAmount = web3.utils.toWei(amount, 'ether');
+      await g12Contract.methods.burn(weiAmount).send({ from: userAddress });
+      updateBalance();
     }
-
-    document.getElementById("connectButton").onclick = connectWallet;
-    document.getElementById("mintButton").onclick = mintG12;
-    document.getElementById("withdrawButton").onclick = withdrawG12;
   </script>
 </body>
 </html>
