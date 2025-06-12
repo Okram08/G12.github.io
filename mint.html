@@ -1,22 +1,150 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>G12 Wallet Connect (avec signature)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
   <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
   <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
   <script src="https://unpkg.com/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
   <style>
-    body { font-family: sans-serif; padding: 30px; max-width: 600px; margin: auto; }
-    input, button { padding: 10px; font-size: 16px; margin: 5px 0; }
-    #walletAddress { margin-top: 10px; color: green; font-weight: bold; }
+    :root {
+      --primary-color: #3ee6e0;
+      --secondary-color: #3a8dde;
+      --bg-color: #0a101a;
+      --bg-dark: #05070b;
+      --text-color: #eaf6ff;
+      --muted-color: #b2c2d6;
+      --accent-light: rgba(62, 230, 224, 0.55);
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      color: var(--text-color);
+      background: radial-gradient(ellipse at top right, var(--bg-color) 0%, var(--bg-dark) 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+    }
+    .background-shape, .background-shape-2 {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .background-shape {
+      top: -250px; left: -250px;
+      width: 900px; height: 900px;
+      background: radial-gradient(circle at 60% 40%, var(--primary-color) 0%, var(--secondary-color) 60%, transparent 100%);
+      filter: blur(60px);
+      opacity: 0.4;
+      animation: blobMove 20s ease-in-out infinite alternate;
+    }
+    .background-shape-2 {
+      top: 100px; right: -200px;
+      width: 700px; height: 700px;
+      background: radial-gradient(circle at 40% 60%, var(--secondary-color) 0%, var(--primary-color) 60%, transparent 100%);
+      filter: blur(50px);
+      opacity: 0.3;
+      animation: blobMove2 25s ease-in-out infinite alternate;
+    }
+    @keyframes blobMove {
+      0% { transform: scale(1) translate(0,0);}
+      50% { transform: scale(1.1) translate(50px, 60px);}
+      100% { transform: scale(1.15) translate(80px, 40px);}
+    }
+    @keyframes blobMove2 {
+      0% { transform: scale(1) translate(0,0);}
+      50% { transform: scale(0.9) translate(-40px, -30px);}
+      100% { transform: scale(0.85) translate(-70px, -20px);}
+    }
+    .glass-card {
+      background: rgba(18,22,32,0.92);
+      border-radius: 20px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+      padding: 2.5rem 1.5rem;
+      max-width: 480px;
+      margin: 4rem auto 2rem auto;
+      text-align: center;
+      border: 1px solid rgba(62,230,224,0.08);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      z-index: 1;
+    }
+    .glass-card h2 {
+      font-size: 1.6rem;
+      background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: bold;
+      margin-bottom: 1.2rem;
+      letter-spacing: 0.03em;
+    }
+    .cta-btn {
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+      color: #0a101a;
+      padding: 1rem 2rem;
+      border-radius: 40px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      margin: 1.5rem auto 2.5rem;
+      display: inline-block;
+      transition: all 0.2s ease-in-out;
+      animation: pulse 3s infinite;
+      text-decoration: none;
+      box-shadow: 0 4px 24px var(--accent-light);
+      border: none;
+      cursor: pointer;
+    }
+    .cta-btn:hover {
+      transform: scale(1.07);
+      color: white;
+      background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+      box-shadow: 0 8px 32px var(--primary-color);
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 var(--accent-light); }
+      70% { box-shadow: 0 0 0 12px transparent; }
+      100% { box-shadow: 0 0 0 0 transparent; }
+    }
+    #walletAddress {
+      margin-top: 18px;
+      color: var(--primary-color);
+      font-weight: bold;
+      font-size: 1.08rem;
+      letter-spacing: 0.01em;
+    }
+    input {
+      padding: 0.9rem 1.2rem;
+      border-radius: 14px;
+      border: 1px solid var(--secondary-color);
+      font-size: 1.07rem;
+      margin: 8px 0;
+      background: rgba(18,22,32,0.75);
+      color: var(--text-color);
+      outline: none;
+      transition: border 0.2s;
+    }
+    input:focus {
+      border-color: var(--primary-color);
+    }
+    @media (max-width: 700px) {
+      .glass-card { padding: 1.3rem 0.7rem; }
+    }
   </style>
 </head>
 <body>
-  <h2>G12 – Connexion sécurisée</h2>
-  <button onclick="connectWallet()">Connect Wallet</button>
-  <p id="walletAddress">Not connected</p>
-
+  <div class="background-shape"></div>
+  <div class="background-shape-2"></div>
+  <section class="glass-card">
+    <h2>Connexion sécurisée à G12</h2>
+    <button class="cta-btn" onclick="connectWallet()">Connecter mon wallet</button>
+    <p id="walletAddress">Non connecté</p>
+  </section>
   <script>
     const providerOptions = {
       walletconnect: {
@@ -48,7 +176,7 @@
         console.log("Signature réussie :", signature);
         document.getElementById("walletAddress").innerText = "Connecté : " + userAddress;
 
-        // Tu peux stocker cette signature côté backend si besoin
+        // Stocke la signature côté backend si besoin
       } catch (err) {
         console.error("Erreur de connexion ou signature annulée :", err);
         alert("Connexion annulée.");
