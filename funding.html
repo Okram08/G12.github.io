@@ -77,17 +77,6 @@
       color: #ff6b81;
       font-weight: 600;
     }
-    @media (max-width: 700px) {
-      .glass-card {
-        padding: 1.2rem 0.3rem 1.6rem 0.3rem;
-      }
-      table, th, td {
-        font-size: 0.97rem;
-      }
-      h1 {
-        font-size: 1.2rem;
-      }
-    }
     .fade-in {
       opacity: 0;
       transform: translateY(20px);
@@ -109,6 +98,44 @@
       font-weight: 600;
       letter-spacing: 0.03em;
       margin-left: 0.3em;
+    }
+    /* Responsive tableau en cartes sur mobile */
+    @media (max-width: 700px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+        width: 100%;
+      }
+      thead tr {
+        display: none;
+      }
+      tr {
+        margin-bottom: 1.2em;
+        border-radius: 10px;
+        background: rgba(44, 83, 100, 0.55);
+        box-shadow: 0 2px 8px rgba(31,38,135,0.07);
+      }
+      td {
+        text-align: left;
+        padding: 0.7em 1em;
+        position: relative;
+        font-size: 1.05em;
+        border: none !important;
+      }
+      td:before {
+        content: attr(data-label);
+        font-weight: bold;
+        color: #4fd1c5;
+        display: block;
+        margin-bottom: 0.2em;
+      }
+    }
+    @media (max-width: 700px) {
+      .glass-card {
+        padding: 1.2rem 0.3rem 1.6rem 0.3rem;
+      }
+      h1 {
+        font-size: 1.2rem;
+      }
     }
   </style>
 </head>
@@ -148,7 +175,6 @@ const FUNDING_FREQ = {
 };
 
 function extractTokenName(pairName) {
-  // Prend la partie avant le premier tiret
   return pairName.split('-')[0];
 }
 
@@ -170,10 +196,8 @@ async function getVestRate(symbol) {
 
 function decidePositions(p, v) {
   const TOL = 0.00001;
-
   const apy_paradex = p * FUNDING_FREQ.paradex * 365 * 100;
   const apy_vest = v * FUNDING_FREQ.vest * 365 * 100;
-
   const p_sign = p > TOL ? 1 : (p < -TOL ? -1 : 0);
   const v_sign = v > TOL ? 1 : (v < -TOL ? -1 : 0);
 
@@ -221,13 +245,13 @@ async function update() {
 
       tbody.innerHTML += `
         <tr>
-          <td>${tokenName}</td>
-          <td class="${p >= 0 ? 'positive' : 'negative'}">${p.toFixed(6)}</td>
-          <td class="${v >= 0 ? 'positive' : 'negative'}">${v.toFixed(6)}</td>
-          <td>${longExchange}</td>
-          <td>${shortExchange}</td>
-          <td class="${parseFloat(apyDiff) > 0 ? 'positive' : ''}">${apyDiff}%</td>
-          <td>${new Date().toLocaleTimeString()}</td>
+          <td data-label="Token">${tokenName}</td>
+          <td data-label="Funding Paradex" class="${p >= 0 ? 'positive' : 'negative'}">${p.toFixed(6)}</td>
+          <td data-label="Funding VEST" class="${v >= 0 ? 'positive' : 'negative'}">${v.toFixed(6)}</td>
+          <td data-label="Long sur">${longExchange}</td>
+          <td data-label="Short sur">${shortExchange}</td>
+          <td data-label="APY estimé (%)" class="${parseFloat(apyDiff) > 0 ? 'positive' : ''}">${apyDiff}%</td>
+          <td data-label="Dernier update">${new Date().toLocaleTimeString()}</td>
         </tr>
       `;
     } catch (e) {
