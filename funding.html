@@ -23,8 +23,6 @@
         <th>Long sur</th>
         <th>Short sur</th>
         <th>APY estimé (%)</th>
-        <th>Montant Long ($)</th>
-        <th>Montant Short ($)</th>
         <th>Dernier update</th>
       </tr>
     </thead>
@@ -45,26 +43,6 @@ const FUNDING_FREQ = {
   vest: 24     // VEST funding toutes les 1h (24 fois par jour)
 };
 
-// Taille de contrat estimée (à ajuster si tu as des valeurs exactes)
-const contractSize = {
-  paradex: {
-    "HYPE-USD-PERP": 1,
-    "S-USD-PERP": 1,
-    "ETH-USD-PERP": 0.001,
-    "SEI-USD-PERP": 1,
-    "BTC-USD-PERP": 0.0001
-  },
-  vest: {
-    "HYPE-PERP": 1,
-    "S-PERP": 1,
-    "ETH-PERP": 0.001,
-    "SEI-PERP": 1,
-    "BTC-PERP": 0.0001
-  }
-};
-
-const baseCapitalLongUSD = 100; // Valeur totale lot long en USD
-
 async function getParadexRate(market) {
   const url = `https://corsproxy.io/?https://api.prod.paradex.trade/v1/funding/data?market=${market}`;
   const res = await fetch(url);
@@ -80,27 +58,8 @@ async function getVestRate(symbol) {
   const json = await res.json();
   return parseFloat(json?.[0]?.oneHrFundingRate);
 }
-
-// Récupérer le prix spot live Paradex (dernier trade)
-async function getParadexPrice(market) {
-  const url = `https://corsproxy.io/?https://api.prod.paradex.trade/v1/markets/${market}/ticker`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Paradex Price API ${res.status}`);
-  const json = await res.json();
-  return parseFloat(json.last_price);
-}
-
-// Récupérer le prix spot live VEST (dernier trade)
-async function getVestPrice(symbol) {
-  const url = `https://corsproxy.io/?https://serverprod.vest.exchange/v1/market/ticker?symbol=${symbol}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`VEST Price API ${res.status}`);
-  const json = await res.json();
-  return parseFloat(json?.data?.last);
-}
-
 function decidePositions(p, v) {
-  const TOL = 0.00001;
+  const TOL = 0.00001; // tolérance
 
   const apy_paradex = p * FUNDING_FREQ.paradex * 365 * 100;
   const apy_vest = v * FUNDING_FREQ.vest * 365 * 100;
@@ -108,33 +67,44 @@ function decidePositions(p, v) {
   const p_sign = p > TOL ? 1 : (p < -TOL ? -1 : 0);
   const v_sign = v > TOL ? 1 : (v < -TOL ? -1 : 0);
 
+  // Cas classique : funding rates opposés
   if (p_sign === -1 && v_sign === 1) {
+    // Paradex funding négatif => long Paradex  
+    // VEST funding positif => short VEST
     const profit = apy_vest - apy_paradex;
     if (profit > 0) {
-      return { longExchange: 'Paradex', shortExchange: 'VEST', apyDiff: profit };
+      return { longExchange: 'Paradex', shortExchange: 'VEST', apyDiff: profit.toFixed(2) };
     }
   } else if (p_sign === 1 && v_sign === -1) {
+    // Paradex funding positif => short Paradex  
+    // VEST funding négatif => long VEST
     const profit = apy_paradex - apy_vest;
     if (profit > 0) {
-      return { longExchange: 'VEST', shortExchange: 'Paradex', apyDiff: profit };
+      return { longExchange: 'VEST', shortExchange: 'Paradex', apyDiff: profit.toFixed(2) };
     }
   }
 
+  // Cas où un funding est négatif et l'autre neutre (0)
   if (p_sign === -1 && v_sign === 0) {
-    const profit = -apy_paradex;
+    // Paradex funding négatif, VEST neutre  
+    // Long Paradex, short VEST
+    const profit = -apy_paradex; 
     if (profit > 0) {
-      return { longExchange: 'Paradex', shortExchange: 'VEST', apyDiff: profit };
+      return { longExchange: 'Paradex', shortExchange: 'VEST', apyDiff: profit.toFixed(2) };
     }
   }
   if (v_sign === -1 && p_sign === 0) {
-    const profit = -apy_vest;
+    // VEST funding négatif, Paradex neutre  
+    // Long VEST, short Paradex
+    const profit = -apy_vest; 
     if (profit > 0) {
-      return { longExchange: 'VEST', shortExchange: 'Paradex', apyDiff: profit };
+      return { longExchange: 'VEST', shortExchange: 'Paradex', apyDiff: profit.toFixed(2) };
     }
   }
 
-  return { longExchange: '-', shortExchange: '-', apyDiff: 0 };
+  return { longExchange: '-', shortExchange: '-', apyDiff: '0.00' };
 }
+
 
 async function update() {
   const tbody = document.getElementById("body");
@@ -142,7 +112,6 @@ async function update() {
 
   for (const pair of pairs) {
     try {
-      // Fetch funding rates
       const [p, v] = await Promise.all([
         getParadexRate(pair.paradex),
         getVestRate(pair.vest)
@@ -150,49 +119,7 @@ async function update() {
 
       if (isNaN(p) || isNaN(v)) throw new Error("Funding rate invalide");
 
-      // Décision long/short
       const { longExchange, shortExchange, apyDiff } = decidePositions(p, v);
-
-      // Récupérer les prix live
-      let priceLong, priceShort;
-
-      if (longExchange === 'Paradex') {
-        priceLong = await getParadexPrice(pair.paradex);
-      } else if (longExchange === 'VEST') {
-        priceLong = await getVestPrice(pair.vest);
-      }
-
-      if (shortExchange === 'Paradex') {
-        priceShort = await getParadexPrice(pair.paradex);
-      } else if (shortExchange === 'VEST') {
-        priceShort = await getVestPrice(pair.vest);
-      }
-
-      // Récupérer tailles contrats
-      const longContractSize = longExchange === 'Paradex'
-        ? contractSize.paradex[pair.paradex] || 1
-        : contractSize.vest[pair.vest] || 1;
-
-      const shortContractSize = shortExchange === 'Paradex'
-        ? contractSize.paradex[pair.paradex] || 1
-        : contractSize.vest[pair.vest] || 1;
-
-      // Calcul taille notionnelle par contrat
-      const longNotionalPerContract = longContractSize * priceLong;
-      const shortNotionalPerContract = shortContractSize * priceShort;
-
-      // Calcul du nombre de contrats short pour neutraliser la position long de 100 USD
-      // nombre contrats long = baseCapitalLongUSD / longNotionalPerContract
-      // nombre contrats short = nombre contrats long * (longNotionalPerContract / shortNotionalPerContract)
-      // montant short en USD = nombre contrats short * shortNotionalPerContract = montant long * (longNotional / shortNotional)
-      let montantLong = '-';
-      let montantShort = '-';
-
-      if (longExchange !== '-' && shortExchange !== '-' && priceLong && priceShort) {
-        montantLong = baseCapitalLongUSD.toFixed(2);
-        // montant short = montantLong * (longNotionalPerContract / shortNotionalPerContract)
-        montantShort = (baseCapitalLongUSD * (longNotionalPerContract / shortNotionalPerContract)).toFixed(2);
-      }
 
       tbody.innerHTML += `
         <tr>
@@ -201,18 +128,15 @@ async function update() {
           <td class="${v >= 0 ? 'positive' : 'negative'}">${v.toFixed(6)}</td>
           <td>${longExchange}</td>
           <td>${shortExchange}</td>
-          <td class="${apyDiff > 0 ? 'positive' : ''}">${apyDiff.toFixed(2)}</td>
-          <td>${montantLong}</td>
-          <td>${montantShort}</td>
+          <td class="${parseFloat(apyDiff) > 0 ? 'positive' : ''}">${apyDiff}</td>
           <td>${new Date().toLocaleTimeString()}</td>
         </tr>
       `;
-
     } catch (e) {
       console.error('Erreur pour', pair.paradex, e);
       tbody.innerHTML += `
         <tr>
-          <td colspan="9">Erreur chargement ${pair.paradex}: ${e.message}</td>
+          <td colspan="7">Erreur chargement ${pair.paradex}: ${e.message}</td>
         </tr>`;
     }
   }
