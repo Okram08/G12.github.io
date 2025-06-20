@@ -61,7 +61,7 @@
     }
     table {
       width: 100%;
-      min-width: 600px;
+      min-width: 700px;
       border-collapse: separate;
       border-spacing: 0;
       background: rgba(255,255,255,0.04);
@@ -88,6 +88,7 @@
     td {
       color: #eaf6fb;
       transition: background 0.2s;
+      cursor: pointer;
     }
     tr:hover td {
       background: rgba(72, 202, 228, 0.07);
@@ -122,6 +123,21 @@
       letter-spacing: 0.03em;
       margin-left: 0.3em;
     }
+    .chart-row td {
+      background: #1a2a3b !important;
+      padding: 1em 0.6em !important;
+      border-bottom: none !important;
+      cursor: default !important;
+    }
+    .chart-container {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      background: rgba(44, 83, 100, 0.18);
+      border-radius: 15px;
+      box-shadow: 0 2px 8px rgba(31,38,135,0.06);
+      padding: 1em 0.5em 1em 0.5em;
+    }
     @media (max-width: 700px) {
       .glass-card {
         padding: 1rem 0.2rem 1.2rem 0.2rem;
@@ -137,7 +153,7 @@
       }
       table {
         font-size: 0.97em;
-        min-width: 520px;
+        min-width: 620px;
       }
       th, td {
         padding: 0.7em 0.4em;
@@ -153,13 +169,14 @@
       }
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <div class="glass-card">
     <h1>📊 Arbitrage Funding Rate <span class="badge">VEST vs Paradex</span></h1>
     <button class="refresh-btn" onclick="update()">🔄 Actualiser</button>
     <div class="table-container">
-      <table>
+      <table id="main-table">
         <thead>
           <tr>
             <th>Token</th>
@@ -175,7 +192,8 @@
       </table>
     </div>
     <div style="text-align:center; margin-top:1.2rem; color:#b7eaff; font-size:0.98em;">
-      Cliquez sur "Actualiser" pour recharger les données.
+      Cliquez sur "Actualiser" pour recharger les données.<br>
+      Cliquez sur une ligne pour voir la courbe APY 7j.
     </div>
   </div>
 <script>
@@ -192,8 +210,8 @@ const pairs = [
 ];
 
 const FUNDING_FREQ = {
-  paradex: 3,
-  vest: 24
+  paradex: 3,   // 3 fois par jour (8h)
+  vest: 24      // 24 fois par jour (1h)
 };
 
 function extractTokenName(pairName) {
@@ -214,6 +232,41 @@ async function getVestRate(symbol) {
   if (!res.ok) throw new Error(`VEST API ${res.status}`);
   const json = await res.json();
   return parseFloat(json?.[0]?.oneHrFundingRate);
+}
+
+// --- HISTORIQUE VEST sur 7j (168 points) ---
+async function getVestHistory(symbol, limit=168) {
+  const url = `https://corsproxy.io/?https://serverprod.vest.exchange/v2/funding/history?symbol=${symbol}&limit=${limit}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`VEST API ${res.status}`);
+  const json = await res.json();
+  return json.map(e => ({
+    rate: parseFloat(e.oneHrFundingRate),
+    ts: e.ts || e.timestamp || null
+  })).filter(x => !isNaN(x.rate));
+}
+
+// --- HISTORIQUE PARADEX sur 7j (21 points) ---
+async function getParadexHistory(market, limit=21) {
+  // 7 jours * 3 (toutes les 8h) = 21 points
+  const end = Date.now();
+  const start = end - 7*24*60*60*1000;
+  const url = `https://corsproxy.io/?https://api.prod.paradex.trade/v1/funding/data?market=${market}&start_at=${start}&end_at=${end}&page_size=${limit}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Paradex API ${res.status}`);
+  const json = await res.json();
+  return (json.results || [])
+    .map(e => ({
+      rate: parseFloat(e.funding_rate),
+      ts: e.created_at
+    }))
+    .filter(x => !isNaN(x.rate))
+    .sort((a, b) => a.ts - b.ts);
+}
+
+function average(arr) {
+  if (!arr.length) return 0;
+  return arr.reduce((a,b) => a+b, 0) / arr.length;
 }
 
 function decidePositions(p, v) {
@@ -263,20 +316,18 @@ async function update() {
   const tbody = document.getElementById("body");
   tbody.innerHTML = '';
 
-  for (const pair of pairs) {
+  for (let i = 0; i < pairs.length; i++) {
+    const pair = pairs[i];
     try {
       const [p, v] = await Promise.all([
         getParadexRate(pair.paradex),
         getVestRate(pair.vest)
       ]);
-
-      if (isNaN(p) || isNaN(v)) throw new Error("Funding rate invalide");
-
       const { longExchange, shortExchange, apyDiff } = decidePositions(p, v);
       const tokenName = extractTokenName(pair.paradex);
 
       tbody.innerHTML += `
-        <tr>
+        <tr class="main-row" data-index="${i}">
           <td>${tokenName}</td>
           <td>${getApyBadge(apyDiff)}</td>
           <td>${longExchange}</td>
@@ -294,6 +345,101 @@ async function update() {
         </tr>`;
     }
   }
+
+  // Ajout du gestionnaire de clic sur chaque ligne
+  Array.from(document.querySelectorAll('.main-row')).forEach(row => {
+    row.onclick = async function() {
+      // Fermer tout graphique ouvert
+      Array.from(document.querySelectorAll('.chart-row')).forEach(r => r.remove());
+
+      const idx = parseInt(this.getAttribute('data-index'));
+      const pair = pairs[idx];
+      const nextRow = this.nextSibling;
+
+      // Ajout d'une ligne sous la ligne cliquée
+      const chartRow = document.createElement('tr');
+      chartRow.className = "chart-row";
+      const chartTd = document.createElement('td');
+      chartTd.colSpan = 7;
+      chartTd.innerHTML = `<div class="chart-container" style="text-align:center;">
+        <b>APY 7j (VEST & Paradex)</b><br>
+        <canvas id="chart-${idx}" height="120"></canvas>
+        <div style="font-size:0.95em;color:#b7eaff;margin-top:0.6em;">APY annualisé calculé à partir des historiques de funding rates (7 derniers jours)</div>
+      </div>`;
+      chartRow.appendChild(chartTd);
+
+      // Insérer la ligne juste après la ligne cliquée
+      if (nextRow) this.parentNode.insertBefore(chartRow, nextRow);
+      else this.parentNode.appendChild(chartRow);
+
+      // Charger les historiques et afficher la courbe
+      try {
+        chartTd.querySelector('canvas').style.opacity = 0.5;
+        const [vestHistory, paradexHistory] = await Promise.all([
+          getVestHistory(pair.vest, 168), // 168 points = 7j
+          getParadexHistory(pair.paradex, 168) // 21 points = 7j
+        ]);
+        // Préparer les données pour Chart.js
+        // VEST : 1 point par heure, Paradex : 1 point par 8h
+        const vestLabels = vestHistory.map((v, i) => {
+          const d = new Date(Date.now() - (vestHistory.length - 1 - i) * 3600 * 1000);
+          return `${d.getDate()}/${d.getMonth()+1}`;
+        });
+        const vestApy = vestHistory.map(e => (e.rate * FUNDING_FREQ.vest * 365 * 100));
+        const paradexLabels = paradexHistory.map((v, i) => {
+          const d = new Date(v.ts);
+          return `${d.getDate()}/${d.getMonth()+1}`;
+        });
+        const paradexApy = paradexHistory.map(e => (e.rate * FUNDING_FREQ.paradex * 365 * 100));
+
+        // Chart.js
+        const ctx = document.getElementById(`chart-${idx}`).getContext('2d');
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: vestLabels, // On affiche les labels VEST (plus dense)
+            datasets: [
+              {
+                label: 'APY VEST',
+                data: vestApy,
+                borderColor: '#4fd1c5',
+                backgroundColor: 'rgba(79,209,197,0.12)',
+                pointRadius: 0,
+                borderWidth: 2,
+                tension: 0.2
+              },
+              {
+                label: 'APY Paradex',
+                data: Array(vestApy.length - paradexApy.length).fill(null).concat(paradexApy),
+                borderColor: '#38a1db',
+                backgroundColor: 'rgba(56,161,219,0.12)',
+                pointRadius: 0,
+                borderWidth: 2,
+                tension: 0.2
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: true, labels: { color: '#b7eaff' } },
+              tooltip: { mode: 'index', intersect: false }
+            },
+            scales: {
+              x: { display: false },
+              y: {
+                ticks: { color: '#b7eaff', font: { size: 12 } },
+                grid: { color: 'rgba(79,209,197,0.08)' }
+              }
+            }
+          }
+        });
+        chartTd.querySelector('canvas').style.opacity = 1;
+      } catch (e) {
+        chartTd.innerHTML = `<div style="color:#ff6b81;">Erreur chargement de l'historique : ${e.message}</div>`;
+      }
+    };
+  });
 }
 
 // Chargement initial
