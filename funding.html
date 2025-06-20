@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Arbitrage Funding Rate</title>
+  <style>
+    body { background: #111; color: #eee; font-family: sans-serif; padding: 1rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { padding: 0.5rem; border: 1px solid #444; text-align: center; }
+    th { background: #222; }
+    .positive { color: #0f0 }
+    .negative { color: #f00 }
+  </style>
+</head>
+<body>
+  <h1>📊 Arbitrage Funding Rate – VEST vs Paradex</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Paire</th><th>Long sur</th><th>Short sur</th><th>APY (%)</th><th>Dernier update</th>
+      </tr>
+    </thead>
+    <tbody id="body"></tbody>
+  </table>
+
+<script>
+const pairs = [
+  { paradex: "ETH-USD-PERP", vest: "ETH-PERP" },
+  { paradex: "BTC-USD-PERP", vest: "BTC-PERP" }
+];
+
+const getParadexRate = async (market) => {
+  const res = await fetch(`https://api.prod.paradex.trade/v1/funding/data?market=${market}`);
+  const json = await res.json();
+  return parseFloat(json.results[0].funding_rate); // hourly rate
+};
+
+const getVestRate = async (symbol) => {
+  const res = await fetch(`https://serverprod.vest.exchange/v2/funding/history?symbol=${symbol}&limit=1`);
+  const json = await res.json();
+  return parseFloat(json[0].oneHrFundingRate); // hourly rate
+};
+
+const update = async () => {
+  const tbody = document.getElementById("body");
+  tbody.innerHTML = '';
+
+  for (const pair of pairs) {
+    try {
+      const [paradex, vest] = await Promise.all([
+        getParadexRate(pair.paradex),
+        getVestRate(pair.vest)
+      ]);
+
+      const diff = paradex - vest;
+      const bestLong = diff > 0 ? 'Paradex' : 'VEST';
+      const bestShort = diff > 0 ? 'VEST' : 'Paradex';
+      const apy = Math.abs(diff * 24 * 365 * 100).toFixed(2); // annualisé
+
+      tbody.innerHTML += `
+        <tr>
+          <td>${pair.paradex}</td>
+          <td>${bestLong}</td>
+          <td>${bestShort}</td>
+          <td class="${diff >= 0 ? 'positive' : 'negative'}">${apy}</td>
+          <td>${new Date().toLocaleTimeString()}</td>
+        </tr>
+      `;
+    } catch (e) {
+      console.error('Erreur pour', pair, e);
+      tbody.innerHTML += `
+        <tr>
+          <td colspan="5">Erreur lors du chargement des données pour ${pair.paradex}</td>
+        </tr>`;
+    }
+  }
+};
+
+update();
+setInterval(update, 60000); // toutes les 60s
+</script>
+</body>
+</html>
