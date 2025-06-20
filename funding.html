@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Arbitrage Funding Rate</title>
+  <title>Arbitrage Funding Rate – VEST & Paradex</title>
   <style>
     body { background: #111; color: #eee; font-family: sans-serif; padding: 1rem; }
     table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
@@ -18,7 +18,11 @@
   <table>
     <thead>
       <tr>
-        <th>Paire</th><th>Long sur</th><th>Short sur</th><th>APY (%)</th><th>Dernier update</th>
+        <th>Paire</th>
+        <th>Long sur</th>
+        <th>Short sur</th>
+        <th>APY (%)</th>
+        <th>Dernier update</th>
       </tr>
     </thead>
     <tbody id="body"></tbody>
@@ -30,33 +34,43 @@ const pairs = [
   { paradex: "BTC-USD-PERP", vest: "BTC-PERP" }
 ];
 
-const getParadexRate = async (market) => {
-  const res = await fetch(`https://api.prod.paradex.trade/v1/funding/data?market=${market}`);
+async function getParadexRate(market) {
+  const url = `https://api.prod.paradex.trade/v1/funding/data?market=${market}`;
+  const res = await fetch(url);
+  console.log('📡 Paradex fetch:', url, res.status);
   const json = await res.json();
-  return parseFloat(json.results[0].funding_rate); // hourly rate
-};
+  console.log('✅ Paradex JSON:', json);
+  return parseFloat(json.results?.[0]?.funding_rate);
+}
 
-const getVestRate = async (symbol) => {
-  const res = await fetch(`https://serverprod.vest.exchange/v2/funding/history?symbol=${symbol}&limit=1`);
+async function getVestRate(symbol) {
+  const url = `https://serverprod.vest.exchange/v2/funding/history?symbol=${symbol}&limit=1`;
+  const res = await fetch(url);
+  console.log('📡 VEST fetch:', url, res.status);
   const json = await res.json();
-  return parseFloat(json[0].oneHrFundingRate); // hourly rate
-};
+  console.log('✅ VEST JSON:', json);
+  return parseFloat(json?.[0]?.oneHrFundingRate);
+}
 
-const update = async () => {
+async function update() {
   const tbody = document.getElementById("body");
   tbody.innerHTML = '';
 
   for (const pair of pairs) {
     try {
-      const [paradex, vest] = await Promise.all([
+      const [p, v] = await Promise.all([
         getParadexRate(pair.paradex),
         getVestRate(pair.vest)
       ]);
 
-      const diff = paradex - vest;
+      console.log(`🔍 Funding rates for ${pair.paradex} — Paradex: ${p}, VEST: ${v}`);
+
+      if (isNaN(p) || isNaN(v)) throw new Error("Funding rate invalide");
+
+      const diff = p - v;
       const bestLong = diff > 0 ? 'Paradex' : 'VEST';
       const bestShort = diff > 0 ? 'VEST' : 'Paradex';
-      const apy = Math.abs(diff * 24 * 365 * 100).toFixed(2); // annualisé
+      const apy = Math.abs(diff * 24 * 365 * 100).toFixed(2);
 
       tbody.innerHTML += `
         <tr>
@@ -68,17 +82,17 @@ const update = async () => {
         </tr>
       `;
     } catch (e) {
-      console.error('Erreur pour', pair, e);
+      console.error('❌ Erreur pour', pair.paradex, e);
       tbody.innerHTML += `
         <tr>
-          <td colspan="5">Erreur lors du chargement des données pour ${pair.paradex}</td>
+          <td colspan="5">Erreur lors du chargement de ${pair.paradex}: ${e.message}</td>
         </tr>`;
     }
   }
-};
+}
 
 update();
-setInterval(update, 60000); // toutes les 60s
+setInterval(update, 60000); // Mise à jour toutes les 60s
 </script>
 </body>
 </html>
