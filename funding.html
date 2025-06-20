@@ -2,7 +2,6 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Arbitrage Funding Rate – VEST & Paradex</title>
   <style>
     body { background: #111; color: #eee; font-family: sans-serif; padding: 1rem; }
@@ -19,9 +18,13 @@
     <thead>
       <tr>
         <th>Paire</th>
+        <th>Funding Paradex</th>
+        <th>Funding VEST</th>
         <th>Long sur</th>
         <th>Short sur</th>
-        <th>APY (%)</th>
+        <th>APY estimé (%)</th>
+        <th>Montant Long ($)</th>
+        <th>Montant Short ($)</th>
         <th>Dernier update</th>
       </tr>
     </thead>
@@ -30,26 +33,107 @@
 
 <script>
 const pairs = [
+  { paradex: "HYPE-USD-PERP", vest: "HYPE-PERP" },
+  { paradex: "S-USD-PERP", vest: "S-PERP" },
   { paradex: "ETH-USD-PERP", vest: "ETH-PERP" },
+  { paradex: "SEI-USD-PERP", vest: "SEI-PERP" },
   { paradex: "BTC-USD-PERP", vest: "BTC-PERP" }
 ];
 
+const FUNDING_FREQ = {
+  paradex: 3,  // Paradex funding toutes les 8h (3 fois par jour)
+  vest: 24     // VEST funding toutes les 1h (24 fois par jour)
+};
+
+// Taille de contrat estimée (à ajuster si tu as des valeurs exactes)
+const contractSize = {
+  paradex: {
+    "HYPE-USD-PERP": 1,
+    "S-USD-PERP": 1,
+    "ETH-USD-PERP": 0.001,
+    "SEI-USD-PERP": 1,
+    "BTC-USD-PERP": 0.0001
+  },
+  vest: {
+    "HYPE-PERP": 1,
+    "S-PERP": 1,
+    "ETH-PERP": 0.001,
+    "SEI-PERP": 1,
+    "BTC-PERP": 0.0001
+  }
+};
+
+const baseCapitalLongUSD = 100; // Valeur totale lot long en USD
+
 async function getParadexRate(market) {
-  const url = `https://api.prod.paradex.trade/v1/funding/data?market=${market}`;
+  const url = `https://corsproxy.io/?https://api.prod.paradex.trade/v1/funding/data?market=${market}`;
   const res = await fetch(url);
-  console.log('📡 Paradex fetch:', url, res.status);
+  if (!res.ok) throw new Error(`Paradex API ${res.status}`);
   const json = await res.json();
-  console.log('✅ Paradex JSON:', json);
   return parseFloat(json.results?.[0]?.funding_rate);
 }
 
 async function getVestRate(symbol) {
-  const url = `https://serverprod.vest.exchange/v2/funding/history?symbol=${symbol}&limit=1`;
+  const url = `https://corsproxy.io/?https://serverprod.vest.exchange/v2/funding/history?symbol=${symbol}&limit=1`;
   const res = await fetch(url);
-  console.log('📡 VEST fetch:', url, res.status);
+  if (!res.ok) throw new Error(`VEST API ${res.status}`);
   const json = await res.json();
-  console.log('✅ VEST JSON:', json);
   return parseFloat(json?.[0]?.oneHrFundingRate);
+}
+
+// Récupérer le prix spot live Paradex (dernier trade)
+async function getParadexPrice(market) {
+  const url = `https://corsproxy.io/?https://api.prod.paradex.trade/v1/markets/${market}/ticker`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Paradex Price API ${res.status}`);
+  const json = await res.json();
+  return parseFloat(json.last_price);
+}
+
+// Récupérer le prix spot live VEST (dernier trade)
+async function getVestPrice(symbol) {
+  const url = `https://corsproxy.io/?https://serverprod.vest.exchange/v1/market/ticker?symbol=${symbol}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`VEST Price API ${res.status}`);
+  const json = await res.json();
+  return parseFloat(json?.data?.last);
+}
+
+function decidePositions(p, v) {
+  const TOL = 0.00001;
+
+  const apy_paradex = p * FUNDING_FREQ.paradex * 365 * 100;
+  const apy_vest = v * FUNDING_FREQ.vest * 365 * 100;
+
+  const p_sign = p > TOL ? 1 : (p < -TOL ? -1 : 0);
+  const v_sign = v > TOL ? 1 : (v < -TOL ? -1 : 0);
+
+  if (p_sign === -1 && v_sign === 1) {
+    const profit = apy_vest - apy_paradex;
+    if (profit > 0) {
+      return { longExchange: 'Paradex', shortExchange: 'VEST', apyDiff: profit };
+    }
+  } else if (p_sign === 1 && v_sign === -1) {
+    const profit = apy_paradex - apy_vest;
+    if (profit > 0) {
+      return { longExchange: 'VEST', shortExchange: 'Paradex', apyDiff: profit };
+    }
+  }
+
+  if (p_sign === -1 && v_sign === 0) {
+    const profit = -apy_paradex;
+    if (profit > 0) {
+      return { longExchange: 'Paradex', shortExchange: 'VEST', apyDiff: profit };
+    }
+  }
+  if (v_sign === -1 && p_sign === 0) {
+    const profit = -apy_vest;
+    if (profit > 0) {
+      return { longExchange: 'VEST', shortExchange: 'Paradex', apyDiff: profit };
+    }
+  }
+
+  return { longExchange: '-', shortExchange: '-', apyDiff: 0 };
 }
 
 async function update() {
@@ -58,41 +142,84 @@ async function update() {
 
   for (const pair of pairs) {
     try {
+      // Fetch funding rates
       const [p, v] = await Promise.all([
         getParadexRate(pair.paradex),
         getVestRate(pair.vest)
       ]);
 
-      console.log(`🔍 Funding rates for ${pair.paradex} — Paradex: ${p}, VEST: ${v}`);
-
       if (isNaN(p) || isNaN(v)) throw new Error("Funding rate invalide");
 
-      const diff = p - v;
-      const bestLong = diff > 0 ? 'Paradex' : 'VEST';
-      const bestShort = diff > 0 ? 'VEST' : 'Paradex';
-      const apy = Math.abs(diff * 24 * 365 * 100).toFixed(2);
+      // Décision long/short
+      const { longExchange, shortExchange, apyDiff } = decidePositions(p, v);
+
+      // Récupérer les prix live
+      let priceLong, priceShort;
+
+      if (longExchange === 'Paradex') {
+        priceLong = await getParadexPrice(pair.paradex);
+      } else if (longExchange === 'VEST') {
+        priceLong = await getVestPrice(pair.vest);
+      }
+
+      if (shortExchange === 'Paradex') {
+        priceShort = await getParadexPrice(pair.paradex);
+      } else if (shortExchange === 'VEST') {
+        priceShort = await getVestPrice(pair.vest);
+      }
+
+      // Récupérer tailles contrats
+      const longContractSize = longExchange === 'Paradex'
+        ? contractSize.paradex[pair.paradex] || 1
+        : contractSize.vest[pair.vest] || 1;
+
+      const shortContractSize = shortExchange === 'Paradex'
+        ? contractSize.paradex[pair.paradex] || 1
+        : contractSize.vest[pair.vest] || 1;
+
+      // Calcul taille notionnelle par contrat
+      const longNotionalPerContract = longContractSize * priceLong;
+      const shortNotionalPerContract = shortContractSize * priceShort;
+
+      // Calcul du nombre de contrats short pour neutraliser la position long de 100 USD
+      // nombre contrats long = baseCapitalLongUSD / longNotionalPerContract
+      // nombre contrats short = nombre contrats long * (longNotionalPerContract / shortNotionalPerContract)
+      // montant short en USD = nombre contrats short * shortNotionalPerContract = montant long * (longNotional / shortNotional)
+      let montantLong = '-';
+      let montantShort = '-';
+
+      if (longExchange !== '-' && shortExchange !== '-' && priceLong && priceShort) {
+        montantLong = baseCapitalLongUSD.toFixed(2);
+        // montant short = montantLong * (longNotionalPerContract / shortNotionalPerContract)
+        montantShort = (baseCapitalLongUSD * (longNotionalPerContract / shortNotionalPerContract)).toFixed(2);
+      }
 
       tbody.innerHTML += `
         <tr>
           <td>${pair.paradex}</td>
-          <td>${bestLong}</td>
-          <td>${bestShort}</td>
-          <td class="${diff >= 0 ? 'positive' : 'negative'}">${apy}</td>
+          <td class="${p >= 0 ? 'positive' : 'negative'}">${p.toFixed(6)}</td>
+          <td class="${v >= 0 ? 'positive' : 'negative'}">${v.toFixed(6)}</td>
+          <td>${longExchange}</td>
+          <td>${shortExchange}</td>
+          <td class="${apyDiff > 0 ? 'positive' : ''}">${apyDiff.toFixed(2)}</td>
+          <td>${montantLong}</td>
+          <td>${montantShort}</td>
           <td>${new Date().toLocaleTimeString()}</td>
         </tr>
       `;
+
     } catch (e) {
-      console.error('❌ Erreur pour', pair.paradex, e);
+      console.error('Erreur pour', pair.paradex, e);
       tbody.innerHTML += `
         <tr>
-          <td colspan="5">Erreur lors du chargement de ${pair.paradex}: ${e.message}</td>
+          <td colspan="9">Erreur chargement ${pair.paradex}: ${e.message}</td>
         </tr>`;
     }
   }
 }
 
 update();
-setInterval(update, 60000); // Mise à jour toutes les 60s
+setInterval(update, 60000); // actualise chaque 60 secondes
 </script>
 </body>
 </html>
