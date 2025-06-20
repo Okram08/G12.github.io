@@ -3,32 +3,136 @@
 <head>
   <meta charset="UTF-8" />
   <title>Arbitrage Funding Rate – VEST & Paradex</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { background: #111; color: #eee; font-family: sans-serif; padding: 1rem; }
-    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-    th, td { padding: 0.5rem; border: 1px solid #444; text-align: center; }
-    th { background: #222; }
-    .positive { color: #0f0 }
-    .negative { color: #f00 }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #0f2027 0%, #2c5364 100%);
+      position: relative;
+      overflow-x: hidden;
+      color: #eaf6fb;
+    }
+    .glass-card {
+      background: rgba(18, 32, 47, 0.65);
+      border-radius: 22px;
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.13);
+      margin: 2.5rem auto 0 auto;
+      padding: 2.5rem 2rem 2rem 2rem;
+      max-width: 900px;
+      width: 95%;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2.2rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #4fd1c5 10%, #38a1db 90%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 2rem;
+      letter-spacing: 0.5px;
+    }
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-top: 1.5rem;
+      background: rgba(255,255,255,0.04);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px 0 rgba(31, 38, 135, 0.08);
+    }
+    th, td {
+      padding: 1rem 0.6rem;
+      text-align: center;
+      font-size: 1.08rem;
+    }
+    th {
+      background: rgba(44, 83, 100, 0.75);
+      color: #b7eaff;
+      font-weight: 700;
+      border-bottom: 2px solid #38a1db;
+      letter-spacing: 0.04em;
+    }
+    tr:not(:last-child) td {
+      border-bottom: 1px solid rgba(72, 202, 228, 0.10);
+    }
+    td {
+      color: #eaf6fb;
+      transition: background 0.2s;
+    }
+    tr:hover td {
+      background: rgba(72, 202, 228, 0.07);
+    }
+    .positive {
+      color: #38e38d;
+      font-weight: 600;
+    }
+    .negative {
+      color: #ff6b81;
+      font-weight: 600;
+    }
+    @media (max-width: 700px) {
+      .glass-card {
+        padding: 1.2rem 0.3rem 1.6rem 0.3rem;
+      }
+      table, th, td {
+        font-size: 0.97rem;
+      }
+      h1 {
+        font-size: 1.2rem;
+      }
+    }
+    .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 0.7s forwards;
+    }
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+    .badge {
+      display: inline-block;
+      background: linear-gradient(90deg, #38a1db 0%, #4fd1c5 100%);
+      color: #fff;
+      font-size: 0.93em;
+      border-radius: 8px;
+      padding: 0.18em 0.7em;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      margin-left: 0.3em;
+    }
   </style>
 </head>
 <body>
-  <h1>📊 Arbitrage Funding Rate – VEST vs Paradex</h1>
-  <table>
-    <thead>
-      <tr>
-        <th>Paire</th>
-        <th>Funding Paradex</th>
-        <th>Funding VEST</th>
-        <th>Long sur</th>
-        <th>Short sur</th>
-        <th>APY estimé (%)</th>
-        <th>Dernier update</th>
-      </tr>
-    </thead>
-    <tbody id="body"></tbody>
-  </table>
-
+  <div class="glass-card fade-in">
+    <h1>📊 Arbitrage Funding Rate <span class="badge">VEST vs Paradex</span></h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Token</th>
+          <th>Funding Paradex</th>
+          <th>Funding VEST</th>
+          <th>Long sur</th>
+          <th>Short sur</th>
+          <th>APY estimé (%)</th>
+          <th>Dernier update</th>
+        </tr>
+      </thead>
+      <tbody id="body"></tbody>
+    </table>
+    <div style="text-align:center; margin-top:1.5rem; color:#b7eaff; font-size:0.98em;">
+      Les données sont actualisées automatiquement toutes les 60 secondes.
+    </div>
+  </div>
 <script>
 const pairs = [
   { paradex: "HYPE-USD-PERP", vest: "HYPE-PERP" },
@@ -39,9 +143,14 @@ const pairs = [
 ];
 
 const FUNDING_FREQ = {
-  paradex: 3,  // Paradex funding toutes les 8h (3 fois par jour)
-  vest: 24     // VEST funding toutes les 1h (24 fois par jour)
+  paradex: 3,
+  vest: 24
 };
+
+function extractTokenName(pairName) {
+  // Prend la partie avant le premier tiret
+  return pairName.split('-')[0];
+}
 
 async function getParadexRate(market) {
   const url = `https://corsproxy.io/?https://api.prod.paradex.trade/v1/funding/data?market=${market}`;
@@ -58,8 +167,9 @@ async function getVestRate(symbol) {
   const json = await res.json();
   return parseFloat(json?.[0]?.oneHrFundingRate);
 }
+
 function decidePositions(p, v) {
-  const TOL = 0.00001; // tolérance
+  const TOL = 0.00001;
 
   const apy_paradex = p * FUNDING_FREQ.paradex * 365 * 100;
   const apy_vest = v * FUNDING_FREQ.vest * 365 * 100;
@@ -67,44 +177,31 @@ function decidePositions(p, v) {
   const p_sign = p > TOL ? 1 : (p < -TOL ? -1 : 0);
   const v_sign = v > TOL ? 1 : (v < -TOL ? -1 : 0);
 
-  // Cas classique : funding rates opposés
   if (p_sign === -1 && v_sign === 1) {
-    // Paradex funding négatif => long Paradex  
-    // VEST funding positif => short VEST
     const profit = apy_vest - apy_paradex;
     if (profit > 0) {
       return { longExchange: 'Paradex', shortExchange: 'VEST', apyDiff: profit.toFixed(2) };
     }
   } else if (p_sign === 1 && v_sign === -1) {
-    // Paradex funding positif => short Paradex  
-    // VEST funding négatif => long VEST
     const profit = apy_paradex - apy_vest;
     if (profit > 0) {
       return { longExchange: 'VEST', shortExchange: 'Paradex', apyDiff: profit.toFixed(2) };
     }
   }
-
-  // Cas où un funding est négatif et l'autre neutre (0)
   if (p_sign === -1 && v_sign === 0) {
-    // Paradex funding négatif, VEST neutre  
-    // Long Paradex, short VEST
-    const profit = -apy_paradex; 
+    const profit = -apy_paradex;
     if (profit > 0) {
       return { longExchange: 'Paradex', shortExchange: 'VEST', apyDiff: profit.toFixed(2) };
     }
   }
   if (v_sign === -1 && p_sign === 0) {
-    // VEST funding négatif, Paradex neutre  
-    // Long VEST, short Paradex
-    const profit = -apy_vest; 
+    const profit = -apy_vest;
     if (profit > 0) {
       return { longExchange: 'VEST', shortExchange: 'Paradex', apyDiff: profit.toFixed(2) };
     }
   }
-
   return { longExchange: '-', shortExchange: '-', apyDiff: '0.00' };
 }
-
 
 async function update() {
   const tbody = document.getElementById("body");
@@ -120,15 +217,16 @@ async function update() {
       if (isNaN(p) || isNaN(v)) throw new Error("Funding rate invalide");
 
       const { longExchange, shortExchange, apyDiff } = decidePositions(p, v);
+      const tokenName = extractTokenName(pair.paradex);
 
       tbody.innerHTML += `
         <tr>
-          <td>${pair.paradex}</td>
+          <td>${tokenName}</td>
           <td class="${p >= 0 ? 'positive' : 'negative'}">${p.toFixed(6)}</td>
           <td class="${v >= 0 ? 'positive' : 'negative'}">${v.toFixed(6)}</td>
           <td>${longExchange}</td>
           <td>${shortExchange}</td>
-          <td class="${parseFloat(apyDiff) > 0 ? 'positive' : ''}">${apyDiff}</td>
+          <td class="${parseFloat(apyDiff) > 0 ? 'positive' : ''}">${apyDiff}%</td>
           <td>${new Date().toLocaleTimeString()}</td>
         </tr>
       `;
@@ -136,14 +234,14 @@ async function update() {
       console.error('Erreur pour', pair.paradex, e);
       tbody.innerHTML += `
         <tr>
-          <td colspan="7">Erreur chargement ${pair.paradex}: ${e.message}</td>
+          <td colspan="7" class="negative">Erreur chargement ${pair.paradex}: ${e.message}</td>
         </tr>`;
     }
   }
 }
 
 update();
-setInterval(update, 60000); // actualise chaque 60 secondes
+setInterval(update, 60000);
 </script>
 </body>
 </html>
