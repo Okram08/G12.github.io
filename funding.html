@@ -11,8 +11,6 @@
       padding: 0;
       font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
       background: linear-gradient(135deg, #0f2027 0%, #2c5364 100%);
-      position: relative;
-      overflow-x: hidden;
       color: #eaf6fb;
     }
     .glass-card {
@@ -71,11 +69,22 @@
     }
     .positive {
       color: #38e38d;
-      font-weight: 600;
+      font-weight: 700;
     }
     .negative {
       color: #ff6b81;
-      font-weight: 600;
+      font-weight: 700;
+    }
+    .apy-badge {
+      display: inline-block;
+      padding: 0.2em 0.7em;
+      border-radius: 12px;
+      font-size: 1.1em;
+      font-weight: 700;
+      background: linear-gradient(90deg,#38a1db 0%,#4fd1c5 100%);
+      color: #fff;
+      margin: 0 0.2em;
+      letter-spacing: 0.03em;
     }
     .fade-in {
       opacity: 0;
@@ -99,42 +108,80 @@
       letter-spacing: 0.03em;
       margin-left: 0.3em;
     }
-    /* Responsive tableau en cartes sur mobile */
+    /* --- MOBILE OPTIMISATION --- */
     @media (max-width: 700px) {
-      table, thead, tbody, th, td, tr {
+      .glass-card {
+        padding: 1rem 0.2rem 1.2rem 0.2rem;
+      }
+      h1 {
+        font-size: 1.1rem;
+        margin-bottom: 1.2rem;
+      }
+      table, thead, tbody, th, tr {
         display: block;
         width: 100%;
       }
-      thead tr {
+      thead {
         display: none;
       }
       tr {
-        margin-bottom: 1.2em;
-        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         background: rgba(44, 83, 100, 0.55);
-        box-shadow: 0 2px 8px rgba(31,38,135,0.07);
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(31,38,135,0.06);
+        margin-bottom: 0.5em;
+        padding: 0.2em 0.6em;
       }
       td {
-        text-align: left;
-        padding: 0.7em 1em;
-        position: relative;
-        font-size: 1.05em;
-        border: none !important;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 0.25em 0.3em;
+        font-size: 1em;
+        border: none;
+        background: none;
+      }
+      td[data-label="Token"] {
+        flex: 2 1 0;
+        font-size: 1.12em;
+        font-weight: 700;
+        color: #4fd1c5;
+        margin-right: 0.5em;
+      }
+      td[data-label="APY estimé (%)"] {
+        flex: 2 1 0;
+        font-size: 1.2em;
+        font-weight: bold;
+        align-items: center;
+        justify-content: center;
+        display: flex;
+      }
+      td[data-label="Long sur"], td[data-label="Short sur"] {
+        flex: 1 1 0;
+        font-size: 0.98em;
+        font-weight: 600;
+        margin-right: 0.1em;
+      }
+      td[data-label="Funding Paradex"],
+      td[data-label="Funding VEST"],
+      td[data-label="Dernier update"] {
+        display: none;
       }
       td:before {
-        content: attr(data-label);
-        font-weight: bold;
-        color: #4fd1c5;
-        display: block;
-        margin-bottom: 0.2em;
+        display: none;
       }
     }
-    @media (max-width: 700px) {
-      .glass-card {
-        padding: 1.2rem 0.3rem 1.6rem 0.3rem;
+    @media (max-width: 400px) {
+      tr {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0.2em 0.2em;
       }
-      h1 {
-        font-size: 1.2rem;
+      td[data-label="APY estimé (%)"] {
+        margin: 0.2em 0;
       }
     }
   </style>
@@ -156,7 +203,7 @@
       </thead>
       <tbody id="body"></tbody>
     </table>
-    <div style="text-align:center; margin-top:1.5rem; color:#b7eaff; font-size:0.98em;">
+    <div style="text-align:center; margin-top:1.2rem; color:#b7eaff; font-size:0.98em;">
       Les données sont actualisées automatiquement toutes les 60 secondes.
     </div>
   </div>
@@ -227,9 +274,20 @@ function decidePositions(p, v) {
   return { longExchange: '-', shortExchange: '-', apyDiff: '0.00' };
 }
 
+function getApyBadge(apy) {
+  if (parseFloat(apy) > 0) {
+    return `<span class="apy-badge positive">+${apy}%</span>`;
+  } else if (parseFloat(apy) < 0) {
+    return `<span class="apy-badge negative">${apy}%</span>`;
+  } else {
+    return `<span class="apy-badge">${apy}%</span>`;
+  }
+}
+
 async function update() {
   const tbody = document.getElementById("body");
   tbody.innerHTML = '';
+  const isMobile = window.innerWidth <= 700;
 
   for (const pair of pairs) {
     try {
@@ -243,17 +301,28 @@ async function update() {
       const { longExchange, shortExchange, apyDiff } = decidePositions(p, v);
       const tokenName = extractTokenName(pair.paradex);
 
-      tbody.innerHTML += `
-        <tr>
-          <td data-label="Token">${tokenName}</td>
-          <td data-label="Funding Paradex" class="${p >= 0 ? 'positive' : 'negative'}">${p.toFixed(6)}</td>
-          <td data-label="Funding VEST" class="${v >= 0 ? 'positive' : 'negative'}">${v.toFixed(6)}</td>
-          <td data-label="Long sur">${longExchange}</td>
-          <td data-label="Short sur">${shortExchange}</td>
-          <td data-label="APY estimé (%)" class="${parseFloat(apyDiff) > 0 ? 'positive' : ''}">${apyDiff}%</td>
-          <td data-label="Dernier update">${new Date().toLocaleTimeString()}</td>
-        </tr>
-      `;
+      if (isMobile) {
+        tbody.innerHTML += `
+          <tr>
+            <td data-label="Token">${tokenName}</td>
+            <td data-label="APY estimé (%)">${getApyBadge(apyDiff)}</td>
+            <td data-label="Long sur">${longExchange}</td>
+            <td data-label="Short sur">${shortExchange}</td>
+          </tr>
+        `;
+      } else {
+        tbody.innerHTML += `
+          <tr>
+            <td data-label="Token">${tokenName}</td>
+            <td data-label="Funding Paradex" class="${p >= 0 ? 'positive' : 'negative'}">${p.toFixed(6)}</td>
+            <td data-label="Funding VEST" class="${v >= 0 ? 'positive' : 'negative'}">${v.toFixed(6)}</td>
+            <td data-label="Long sur">${longExchange}</td>
+            <td data-label="Short sur">${shortExchange}</td>
+            <td data-label="APY estimé (%)">${getApyBadge(apyDiff)}</td>
+            <td data-label="Dernier update">${new Date().toLocaleTimeString()}</td>
+          </tr>
+        `;
+      }
     } catch (e) {
       console.error('Erreur pour', pair.paradex, e);
       tbody.innerHTML += `
@@ -263,6 +332,9 @@ async function update() {
     }
   }
 }
+
+// Rafraîchit aussi lors du redimensionnement (utile pour passage desktop <-> mobile)
+window.addEventListener('resize', update);
 
 update();
 setInterval(update, 60000);
