@@ -493,7 +493,7 @@
       <a href="mailto:contact@g12.com">Contact</a>
     </nav>
   </footer>
-  <script>
+ <script>
   // Burger menu JS
   const burger = document.querySelector('.burger');
   const mobileNav = document.querySelector('.mobile-nav');
@@ -724,7 +724,6 @@
             getVestHistory(pair.vest, 168),
             getParadexHistory(pair.paradex, 21)
           ]);
-          // Calcule les APY 7j annualisées glissantes
           const vestApy7d = compute7dAPY(vestHistory, FUNDING_FREQ.vest);
           const paradexApy7d = compute7dAPY(paradexHistory, FUNDING_FREQ.paradex);
 
@@ -738,9 +737,10 @@
             return `${d.getDate()}/${d.getMonth()+1}`;
           });
 
-          // Si pas assez de données, affiche un message
+          // Si pas assez de données, affiche un message clair
           if (!vestLabels.length && !paradexLabels.length) {
-            chartTd.innerHTML = `<div style="color:#ff6b81;">Pas assez de données pour afficher la courbe APY 7j.</div>`;
+            chartTd.innerHTML = `<div style="color:#ff6b81;">Pas assez de données pour afficher la courbe APY 7j.<br>
+            (Vérifie que le token a bien 7 jours d'historique de funding sur Paradex et VEST)</div>`;
             return;
           }
 
