@@ -1,122 +1,28 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>G12 - Funding Rates avec Graphique</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>G12 - Funding Rates</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
   <style>
-    body {
-      background: #0a101a;
-      color: #eaf6ff;
-      font-family: 'Inter', sans-serif;
-      margin: 0;
-    }
-    .glass-card {
-      background: rgba(18, 22, 32, 0.92);
-      border-radius: 20px;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-      padding: 2.5rem 1.5rem;
-      max-width: 900px;
-      margin: 2rem auto;
-      text-align: center;
-    }
-    .table-container {
-      width: 100%;
-      overflow-x: auto;
-      margin-top: 1.5rem;
-      cursor: pointer;
-    }
-    table {
-      width: 100%;
-      min-width: 700px;
-      border-collapse: separate;
-      border-spacing: 0;
-      background: rgba(255, 255, 255, 0.04);
-      border-radius: 14px;
-    }
-    th,
-    td {
-      padding: 1rem 0.6rem;
-      text-align: center;
-      font-size: 1.08rem;
-    }
-    th {
-      background: rgba(44, 83, 100, 0.75);
-      color: #b7eaff;
-    }
-    tr:not(:last-child) td {
-      border-bottom: 1px solid rgba(72, 202, 228, 0.1);
-    }
-    .positive {
-      color: #38e38d;
-      font-weight: 700;
-    }
-    .negative {
-      color: #ff6b81;
-      font-weight: 700;
-    }
-    .apy-badge {
-      display: inline-block;
-      padding: 0.2em 0.7em;
-      border-radius: 12px;
-      font-size: 1.1em;
-      font-weight: 700;
-      background: linear-gradient(90deg, #38a1db 0%, #4fd1c5 100%);
-      color: #fff;
-    }
-    #chart-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0,0,0,0.85);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-    }
-    #chart-container {
-      background: #121620;
-      border-radius: 20px;
-      padding: 1.5rem 2rem;
-      max-width: 90vw;
-      max-height: 80vh;
-      box-shadow: 0 0 20px #38a1dbaa;
-      position: relative;
-    }
-    #close-chart {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      background: #ff6b81;
-      border: none;
-      color: white;
-      font-weight: 700;
-      border-radius: 12px;
-      padding: 6px 12px;
-      cursor: pointer;
-      font-size: 1rem;
-    }
-    button {
-      margin-bottom: 1.2rem;
-      background: linear-gradient(90deg, #38a1db 0%, #4fd1c5 100%);
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      padding: 0.7em 1.5em;
-      font-size: 1.08em;
-      font-weight: 700;
-      cursor: pointer;
-    }
+    body { background: #0a101a; color: #eaf6ff; font-family: 'Inter', sans-serif; margin:0; }
+    .glass-card { background: rgba(18,22,32,0.92); border-radius: 20px; box-shadow: 0 6px 20px rgba(0,0,0,0.3); padding: 2.5rem 1.5rem; max-width: 900px; margin: 2rem auto; text-align: center; }
+    .table-container { width: 100%; overflow-x: auto; margin-top: 1.5rem; }
+    table { width: 100%; min-width: 700px; border-collapse: separate; border-spacing: 0; background: rgba(255,255,255,0.04); border-radius: 14px; }
+    th, td { padding: 1rem 0.6rem; text-align: center; font-size: 1.08rem; }
+    th { background: rgba(44, 83, 100, 0.75); color: #b7eaff; }
+    tr:not(:last-child) td { border-bottom: 1px solid rgba(72, 202, 228, 0.10); }
+    .positive { color: #38e38d; font-weight: 700; }
+    .negative { color: #ff6b81; font-weight: 700; }
+    .apy-badge { display: inline-block; padding: 0.2em 0.7em; border-radius: 12px; font-size: 1.1em; font-weight: 700; background: linear-gradient(90deg,#38a1db 0%,#4fd1c5 100%); color: #fff; }
   </style>
 </head>
 <body>
   <section class="glass-card">
-    <h1>📊 Arbitrage Funding Rate <span style="background: linear-gradient(90deg, #38a1db 0%, #4fd1c5 100%); color: #fff; padding: 0.18em 0.7em; border-radius: 8px;">VEST vs Paradex vs Extend</span></h1>
-    <button onclick="update()">🔄 Actualiser</button>
+    <h1>📊 Arbitrage Funding Rate <span style="background:linear-gradient(90deg,#38a1db 0%,#4fd1c5 100%);color:#fff;padding:0.18em 0.7em;border-radius:8px;">VEST vs Paradex vs Extend</span></h1>
+    <button onclick="update()" style="margin-bottom:1.2rem;background:linear-gradient(90deg,#38a1db 0%,#4fd1c5 100%);color:#fff;border:none;border-radius:10px;padding:0.7em 1.5em;font-size:1.08em;font-weight:700;cursor:pointer;">🔄 Actualiser</button>
     <div class="table-container">
       <table id="main-table">
         <thead>
@@ -134,171 +40,138 @@
         <tbody id="body"></tbody>
       </table>
     </div>
-    <div style="text-align: center; margin-top: 1.2rem; color: #b7eaff; font-size: 0.98em;">
-      Cliquez sur une ligne pour voir le graphique APY moyen sur 7 jours.<br />
-      Cliquez hors du graphique ou sur la croix pour fermer.
+    <div style="text-align:center; margin-top:1.2rem; color:#b7eaff; font-size:0.98em;">
+      Cliquez sur "Actualiser" pour recharger les données.<br>
+      Si aucun APY n'est indiqué, c'est que l'algorithme estime que l'arbitrage n'est pas profitable.
     </div>
   </section>
-
-  <div id="chart-modal">
-    <div id="chart-container">
-      <button id="close-chart">✖️ Fermer</button>
-      <canvas id="apy-chart" width="800" height="400"></canvas>
-    </div>
-  </div>
-
   <script>
     const pairs = [
-      { paradex: "HYPE-USD-PERP", vest: "HYPE-PERP" },
-      { paradex: "S-USD-PERP", vest: "S-PERP" },
-      { paradex: "ETH-USD-PERP", vest: "ETH-PERP" },
-      { paradex: "SEI-USD-PERP", vest: "SEI-PERP" },
-      { paradex: "SOL-USD-PERP", vest: "SOL-PERP" },
-      { paradex: "BERA-USD-PERP", vest: "BERA-PERP" },
-      { paradex: "UNI-USD-PERP", vest: "UNI-PERP" },
-      { paradex: "SPX-USD-PERP", vest: "SPX-PERP" },
-      { paradex: "BTC-USD-PERP", vest: "BTC-PERP" }
+      { paradex: "HYPE-USD-PERP", vest: "HYPE-PERP", extend: "HYPE-USD" },
+      { paradex: "S-USD-PERP", vest: "S-PERP", extend: "S-USD" },
+      { paradex: "ETH-USD-PERP", vest: "ETH-PERP", extend: "ETH-USD" },
+      { paradex: "SEI-USD-PERP", vest: "SEI-PERP", extend: "SEI-USD" },
+      { paradex: "SOL-USD-PERP", vest: "SOL-PERP", extend: "SOL-USD" },
+      { paradex: "BERA-USD-PERP", vest: "BERA-PERP", extend: "BERA-USD" },
+      { paradex: "UNI-USD-PERP", vest: "UNI-PERP", extend: "UNI-USD" },
+      { paradex: "SPX-USD-PERP", vest: "SPX-PERP", extend: "SPX-USD" },
+      { paradex: "BTC-USD-PERP", vest: "BTC-PERP", extend: "BTC-USD" }
     ];
-    const history = {};
 
-    async function getFundingHistory(source, pair) {
-      const res = await fetch(`https://api.geckoterminal.xyz/api/v2/networks/base/pools/${source}-${pair.toLowerCase()}/funding_rates`);
-      const data = await res.json();
-      return data.data.attributes.history;
+    const FUNDING_FREQ = {
+      paradex: 3,   // 3 fois par jour
+      vest: 24      // 24 fois par jour
+    };
+
+    function extractTokenName(pairName) {
+      return pairName.split('-')[0];
     }
 
-    async function getParadexHistory(pair) {
-      return getFundingHistory("paradex", pair);
+    async function getParadexRate(market) {
+      const url = `https://corsproxy.io/?https://api.prod.paradex.trade/v1/funding/data?market=${market}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Paradex API ${res.status}`);
+      const json = await res.json();
+      return parseFloat(json.results?.[0]?.funding_rate);
     }
 
-    async function getVestHistory(pair) {
-      return getFundingHistory("vest", pair);
+    async function getVestRate(symbol) {
+      const url = `https://corsproxy.io/?https://serverprod.vest.exchange/v2/funding/history?symbol=${symbol}&limit=1`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`VEST API ${res.status}`);
+      const json = await res.json();
+      return parseFloat(json?.[0]?.oneHrFundingRate);
     }
 
-    async function getExtendHistory(pair) {
-      return getFundingHistory("extend", pair);
+    async function getExtendRate(market) {
+      const end = Date.now();
+      const start = end - 2 * 60 * 60 * 1000;
+      const url = `https://corsproxy.io/?https://api.extended.exchange/api/v1/info/${market}/funding?startTime=${start}&endTime=${end}&limit=1`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Extend API ${res.status}`);
+      const json = await res.json();
+      if (!json.data || !json.data.length) return null;
+      return parseFloat(json.data[0].f);
     }
 
-    function showChartForPair(pair) {
-      const labels = Array.from({ length: 7 }, (_, i) => `J-${6 - i}`);
-      const ctx = document.getElementById("apy-chart").getContext("2d");
-      if (window.apyChart) window.apyChart.destroy();
-      window.apyChart = new Chart(ctx, {
-        type: "line",
-        data: {
-          labels,
-          datasets: [
-            {
-              label: "Paradex",
-              data: history[pair].paradex,
-              borderColor: "#4fd1c5",
-              fill: false,
-              tension: 0.3
-            },
-            {
-              label: "Vest",
-              data: history[pair].vest,
-              borderColor: "#38a1db",
-              fill: false,
-              tension: 0.3
-            },
-            {
-              label: "Extend",
-              data: history[pair].extend,
-              borderColor: "#ff6b81",
-              fill: false,
-              tension: 0.3
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { labels: { color: "white" } }
-          },
-          scales: {
-            x: { ticks: { color: "white" } },
-            y: {
-              ticks: {
-                color: "white",
-                callback: val => val + "%"
-              }
-            }
+    function decidePositions(p, v, e) {
+      const TOL = 0.00001;
+      const rates = [
+        { name: 'Paradex', rate: p, freq: FUNDING_FREQ.paradex },
+        { name: 'VEST', rate: v, freq: FUNDING_FREQ.vest },
+        { name: 'Extend', rate: e, freq: FUNDING_FREQ.vest } // Assume 1h like Vest
+      ];
+
+      let best = { longExchange: '-', shortExchange: '-', apyDiff: '0.00' };
+
+      for (let i = 0; i < rates.length; i++) {
+        for (let j = 0; j < rates.length; j++) {
+          if (i === j || rates[i].rate == null || rates[j].rate == null) continue;
+
+          const long = rates[i];
+          const short = rates[j];
+
+          const apyLong = long.rate * long.freq * 365 * 100;
+          const apyShort = short.rate * short.freq * 365 * 100;
+          const profit = apyShort - apyLong;
+
+          if (profit > TOL && profit > parseFloat(best.apyDiff)) {
+            best = {
+              longExchange: long.name,
+              shortExchange: short.name,
+              apyDiff: profit.toFixed(2)
+            };
           }
         }
-      });
-      document.getElementById("chart-modal").style.display = "flex";
+      }
+
+      return best;
+    }
+
+    function getApyBadge(apy) {
+      if (parseFloat(apy) > 0) {
+        return `<span class="apy-badge positive">+${apy}%</span>`;
+      } else if (parseFloat(apy) < 0) {
+        return `<span class="apy-badge negative">${apy}%</span>`;
+      } else {
+        return `<span class="apy-badge">${apy}%</span>`;
+      }
     }
 
     async function update() {
       const tbody = document.getElementById("body");
-      tbody.innerHTML = "";
+      tbody.innerHTML = '';
 
-      for (const pair of pairs) {
-        const [paradex, vest, extend] = await Promise.all([
-          getParadexHistory(pair),
-          getVestHistory(pair),
-          getExtendHistory(pair)
-        ]);
-
-        const avg = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
-        const last = arr => arr[arr.length - 1];
-
-        const avgParadex = avg(paradex.slice(-7));
-        const avgVest = avg(vest.slice(-7));
-        const avgExtend = avg(extend.slice(-7));
-
-        history[pair] = {
-          paradex: paradex.slice(-7),
-          vest: vest.slice(-7),
-          extend: extend.slice(-7)
-        };
-
-        const diff1 = avgParadex - avgVest;
-        const diff2 = avgParadex - avgExtend;
-
-        let bestLong, bestShort, estApy;
-        if (diff1 > diff2 && diff1 > 0) {
-          bestLong = "Vest";
-          bestShort = "Paradex";
-          estApy = diff1;
-        } else if (diff2 > 0) {
-          bestLong = "Extend";
-          bestShort = "Paradex";
-          estApy = diff2;
-        } else {
-          bestLong = "-";
-          bestShort = "-";
-          estApy = 0;
+      for (let i = 0; i < pairs.length; i++) {
+        const pair = pairs[i];
+        try {
+          const [p, v, e] = await Promise.all([
+            getParadexRate(pair.paradex),
+            getVestRate(pair.vest),
+            getExtendRate(pair.extend)
+          ]);
+          const { longExchange, shortExchange, apyDiff } = decidePositions(p, v, e);
+          const tokenName = extractTokenName(pair.paradex);
+          tbody.innerHTML += `
+            <tr class="main-row" data-index="${i}">
+              <td>${tokenName}</td>
+              <td>${getApyBadge(apyDiff)}</td>
+              <td>${longExchange}</td>
+              <td>${shortExchange}</td>
+              <td class="${p >= 0 ? 'positive' : 'negative'}">${p.toFixed(6)}</td>
+              <td class="${v >= 0 ? 'positive' : 'negative'}">${v.toFixed(6)}</td>
+              <td class="${e !== null ? (e >= 0 ? 'positive' : 'negative') : ''}">${e !== null ? e.toFixed(6) : '-'}</td>
+              <td>${new Date().toLocaleTimeString()}</td>
+            </tr>
+          `;
+        } catch (e) {
+          console.error('Erreur pour', pair.paradex, e);
+          tbody.innerHTML += `<tr><td colspan="8" class="negative">Erreur chargement ${pair.paradex}: ${e.message}</td></tr>`;
         }
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${pair}</td>
-          <td><span class="apy-badge">${estApy.toFixed(2)}%</span></td>
-          <td>${bestLong}</td>
-          <td>${bestShort}</td>
-          <td class="${avgParadex > 0 ? "positive" : "negative"}">${avgParadex.toFixed(2)}%</td>
-          <td class="${avgVest > 0 ? "positive" : "negative"}">${avgVest.toFixed(2)}%</td>
-          <td class="${avgExtend > 0 ? "positive" : "negative"}">${avgExtend.toFixed(2)}%</td>
-          <td>${new Date().toLocaleTimeString()}</td>
-        `;
-        tr.addEventListener("click", () => showChartForPair(pair));
-        tbody.appendChild(tr);
       }
     }
 
-    document.getElementById("close-chart").addEventListener("click", () => {
-      document.getElementById("chart-modal").style.display = "none";
-    });
-
-    window.addEventListener("click", function (e) {
-      const modal = document.getElementById("chart-modal");
-      if (e.target === modal) {
-        modal.style.display = "none";
-      }
-    });
-
+    // Initial load
     update();
   </script>
 </body>
