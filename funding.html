@@ -148,7 +148,17 @@
   </div>
 
   <script>
-    const pairs = ["ETH", "BTC", "SOL", "LINK", "DOGE"];
+    const pairs = [
+      { paradex: "HYPE-USD-PERP", vest: "HYPE-PERP" },
+      { paradex: "S-USD-PERP", vest: "S-PERP" },
+      { paradex: "ETH-USD-PERP", vest: "ETH-PERP" },
+      { paradex: "SEI-USD-PERP", vest: "SEI-PERP" },
+      { paradex: "SOL-USD-PERP", vest: "SOL-PERP" },
+      { paradex: "BERA-USD-PERP", vest: "BERA-PERP" },
+      { paradex: "UNI-USD-PERP", vest: "UNI-PERP" },
+      { paradex: "SPX-USD-PERP", vest: "SPX-PERP" },
+      { paradex: "BTC-USD-PERP", vest: "BTC-PERP" }
+    ];
     const history = {};
 
     async function getFundingHistory(source, pair) {
