@@ -1,177 +1,229 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>G12 - Funding Rates</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Funding Rate Arbitrage</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { background: #0a101a; color: #eaf6ff; font-family: 'Inter', sans-serif; margin:0; }
-    .glass-card { background: rgba(18,22,32,0.92); border-radius: 20px; box-shadow: 0 6px 20px rgba(0,0,0,0.3); padding: 2.5rem 1.5rem; max-width: 900px; margin: 2rem auto; text-align: center; }
-    .table-container { width: 100%; overflow-x: auto; margin-top: 1.5rem; }
-    table { width: 100%; min-width: 700px; border-collapse: separate; border-spacing: 0; background: rgba(255,255,255,0.04); border-radius: 14px; }
-    th, td { padding: 1rem 0.6rem; text-align: center; font-size: 1.08rem; }
-    th { background: rgba(44, 83, 100, 0.75); color: #b7eaff; }
-    tr:not(:last-child) td { border-bottom: 1px solid rgba(72, 202, 228, 0.10); }
-    .positive { color: #38e38d; font-weight: 700; }
-    .negative { color: #ff6b81; font-weight: 700; }
-    .apy-badge { display: inline-block; padding: 0.2em 0.7em; border-radius: 12px; font-size: 1.1em; font-weight: 700; background: linear-gradient(90deg,#38a1db 0%,#4fd1c5 100%); color: #fff; }
+    body {
+      background: #0a101a;
+      color: #eaf6ff;
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+    }
+    .glass-card {
+      background: rgba(18, 22, 32, 0.92);
+      border-radius: 20px;
+      padding: 2rem;
+      max-width: 900px;
+      margin: 2rem auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 1rem;
+      text-align: center;
+    }
+    th {
+      background: rgba(44, 83, 100, 0.75);
+    }
+    tr:nth-child(even) {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .positive { color: #38e38d; font-weight: bold; }
+    .negative { color: #ff6b81; font-weight: bold; }
+    .apy-badge {
+      background: linear-gradient(90deg, #38a1db, #4fd1c5);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+
+    /* Modal styles */
+    #chart-modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.85);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    #chart-container {
+      background: #121620;
+      border-radius: 16px;
+      padding: 1rem;
+      width: 90%;
+      max-width: 800px;
+    }
+    #close-chart {
+      float: right;
+      background: #ff6b81;
+      border: none;
+      color: white;
+      padding: 6px 12px;
+      font-size: 1em;
+      border-radius: 6px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
   <section class="glass-card">
-    <h1>📊 Arbitrage Funding Rate <span style="background:linear-gradient(90deg,#38a1db 0%,#4fd1c5 100%);color:#fff;padding:0.18em 0.7em;border-radius:8px;">VEST vs Paradex vs Extend</span></h1>
-    <button onclick="update()" style="margin-bottom:1.2rem;background:linear-gradient(90deg,#38a1db 0%,#4fd1c5 100%);color:#fff;border:none;border-radius:10px;padding:0.7em 1.5em;font-size:1.08em;font-weight:700;cursor:pointer;">🔄 Actualiser</button>
-    <div class="table-container">
-      <table id="main-table">
-        <thead>
-          <tr>
-            <th>Token</th>
-            <th>APY estimé (%)</th>
-            <th>Long sur</th>
-            <th>Short sur</th>
-            <th>Funding Paradex</th>
-            <th>Funding VEST</th>
-            <th>Funding Extend</th>
-            <th>Dernier update</th>
-          </tr>
-        </thead>
-        <tbody id="body"></tbody>
-      </table>
-    </div>
-    <div style="text-align:center; margin-top:1.2rem; color:#b7eaff; font-size:0.98em;">
-      Cliquez sur "Actualiser" pour recharger les données.<br>
-      Si aucun APY n'est indiqué, c'est que l'algorithme estime que l'arbitrage n'est pas profitable.
-    </div>
+    <h2>Funding Rate Arbitrage (Données mock)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Token</th>
+          <th>APY Estimé</th>
+          <th>Long sur</th>
+          <th>Short sur</th>
+          <th>Paradex</th>
+          <th>Vest</th>
+          <th>Extend</th>
+        </tr>
+      </thead>
+      <tbody id="body"></tbody>
+    </table>
   </section>
+
+  <!-- Modale pour graphique -->
+  <div id="chart-modal">
+    <div id="chart-container">
+      <button id="close-chart">Fermer</button>
+      <canvas id="fundingChart"></canvas>
+    </div>
+  </div>
+
   <script>
-    const pairs = [
-      { paradex: "HYPE-USD-PERP", vest: "HYPE-PERP", extend: "HYPE-USD" },
-      { paradex: "S-USD-PERP", vest: "S-PERP", extend: "S-USD" },
-      { paradex: "ETH-USD-PERP", vest: "ETH-PERP", extend: "ETH-USD" },
-      { paradex: "SEI-USD-PERP", vest: "SEI-PERP", extend: "SEI-USD" },
-      { paradex: "SOL-USD-PERP", vest: "SOL-PERP", extend: "SOL-USD" },
-      { paradex: "BERA-USD-PERP", vest: "BERA-PERP", extend: "BERA-USD" },
-      { paradex: "UNI-USD-PERP", vest: "UNI-PERP", extend: "UNI-USD" },
-      { paradex: "SPX-USD-PERP", vest: "SPX-PERP", extend: "SPX-USD" },
-      { paradex: "BTC-USD-PERP", vest: "BTC-PERP", extend: "BTC-USD" }
-    ];
+    const pairs = ["ETH", "BTC", "SOL"];
+    const history = {};
 
-    const FUNDING_FREQ = {
-      paradex: 3,   // 3 fois par jour
-      vest: 24      // 24 fois par jour
-    };
-
-    function extractTokenName(pairName) {
-      return pairName.split('-')[0];
+    // Fonction pour générer des données aléatoires pour simuler les funding rates
+    function mockHistory() {
+      return Array.from({ length: 7 }, () => (Math.random() * 4 - 2).toFixed(2));
     }
 
-    async function getParadexRate(market) {
-      const url = `https://corsproxy.io/?https://api.prod.paradex.trade/v1/funding/data?market=${market}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`Paradex API ${res.status}`);
-      const json = await res.json();
-      return parseFloat(json.results?.[0]?.funding_rate);
+    // Fonction pour calculer la moyenne
+    const average = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
+
+    function update() {
+      const tbody = document.getElementById("body");
+      tbody.innerHTML = "";
+
+      pairs.forEach((pair, index) => {
+        const paradex = mockHistory().map(Number);
+        const vest = mockHistory().map(Number);
+        const extend = mockHistory().map(Number);
+
+        history[pair] = { paradex, vest, extend };
+
+        const avgParadex = average(paradex);
+        const avgVest = average(vest);
+        const avgExtend = average(extend);
+
+        let bestLong = "-", bestShort = "-", apy = 0;
+        const max = Math.max(avgParadex, avgVest, avgExtend);
+        const min = Math.min(avgParadex, avgVest, avgExtend);
+
+        if (max > min) {
+          if (avgParadex === max) bestShort = "Paradex";
+          if (avgVest === max) bestShort = "Vest";
+          if (avgExtend === max) bestShort = "Extend";
+
+          if (avgParadex === min) bestLong = "Paradex";
+          if (avgVest === min) bestLong = "Vest";
+          if (avgExtend === min) bestLong = "Extend";
+
+          apy = max - min;
+        }
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${pair}</td>
+          <td><span class="apy-badge">${apy.toFixed(2)}%</span></td>
+          <td>${bestLong}</td>
+          <td>${bestShort}</td>
+          <td class="${avgParadex > 0 ? 'positive' : 'negative'}">${avgParadex.toFixed(2)}%</td>
+          <td class="${avgVest > 0 ? 'positive' : 'negative'}">${avgVest.toFixed(2)}%</td>
+          <td class="${avgExtend > 0 ? 'positive' : 'negative'}">${avgExtend.toFixed(2)}%</td>
+        `;
+        tr.addEventListener("click", () => showChart(pair));
+        tbody.appendChild(tr);
+      });
     }
 
-    async function getVestRate(symbol) {
-      const url = `https://corsproxy.io/?https://serverprod.vest.exchange/v2/funding/history?symbol=${symbol}&limit=1`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`VEST API ${res.status}`);
-      const json = await res.json();
-      return parseFloat(json?.[0]?.oneHrFundingRate);
-    }
+    // Chart logic
+    let chartInstance = null;
 
-    async function getExtendRate(market) {
-      const end = Date.now();
-      const start = end - 2 * 60 * 60 * 1000;
-      const url = `https://corsproxy.io/?https://api.extended.exchange/api/v1/info/${market}/funding?startTime=${start}&endTime=${end}&limit=1`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`Extend API ${res.status}`);
-      const json = await res.json();
-      if (!json.data || !json.data.length) return null;
-      return parseFloat(json.data[0].f);
-    }
+    function showChart(token) {
+      const labels = ['J-6', 'J-5', 'J-4', 'J-3', 'J-2', 'J-1', 'Aujourd’hui'];
+      const data = history[token];
 
-    function decidePositions(p, v, e) {
-      const TOL = 0.00001;
-      const rates = [
-        { name: 'Paradex', rate: p, freq: FUNDING_FREQ.paradex },
-        { name: 'VEST', rate: v, freq: FUNDING_FREQ.vest },
-        { name: 'Extend', rate: e, freq: FUNDING_FREQ.vest } // Assume 1h like Vest
-      ];
+      const ctx = document.getElementById("fundingChart").getContext("2d");
+      if (chartInstance) chartInstance.destroy();
 
-      let best = { longExchange: '-', shortExchange: '-', apyDiff: '0.00' };
-
-      for (let i = 0; i < rates.length; i++) {
-        for (let j = 0; j < rates.length; j++) {
-          if (i === j || rates[i].rate == null || rates[j].rate == null) continue;
-
-          const long = rates[i];
-          const short = rates[j];
-
-          const apyLong = long.rate * long.freq * 365 * 100;
-          const apyShort = short.rate * short.freq * 365 * 100;
-          const profit = apyShort - apyLong;
-
-          if (profit > TOL && profit > parseFloat(best.apyDiff)) {
-            best = {
-              longExchange: long.name,
-              shortExchange: short.name,
-              apyDiff: profit.toFixed(2)
-            };
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Paradex",
+              data: data.paradex,
+              borderColor: "#4fd1c5",
+              fill: false,
+            },
+            {
+              label: "Vest",
+              data: data.vest,
+              borderColor: "#38a1db",
+              fill: false,
+            },
+            {
+              label: "Extend",
+              data: data.extend,
+              borderColor: "#ff6b81",
+              fill: false,
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { labels: { color: '#fff' } },
+          },
+          scales: {
+            x: { ticks: { color: '#b7eaff' } },
+            y: {
+              ticks: {
+                color: '#b7eaff',
+                callback: value => value + '%'
+              }
+            }
           }
         }
-      }
+      });
 
-      return best;
+      document.getElementById("chart-modal").style.display = "flex";
     }
 
-    function getApyBadge(apy) {
-      if (parseFloat(apy) > 0) {
-        return `<span class="apy-badge positive">+${apy}%</span>`;
-      } else if (parseFloat(apy) < 0) {
-        return `<span class="apy-badge negative">${apy}%</span>`;
-      } else {
-        return `<span class="apy-badge">${apy}%</span>`;
+    document.getElementById("close-chart").onclick = () => {
+      document.getElementById("chart-modal").style.display = "none";
+      if (chartInstance) {
+        chartInstance.destroy();
+        chartInstance = null;
       }
-    }
+    };
 
-    async function update() {
-      const tbody = document.getElementById("body");
-      tbody.innerHTML = '';
-
-      for (let i = 0; i < pairs.length; i++) {
-        const pair = pairs[i];
-        try {
-          const [p, v, e] = await Promise.all([
-            getParadexRate(pair.paradex),
-            getVestRate(pair.vest),
-            getExtendRate(pair.extend)
-          ]);
-          const { longExchange, shortExchange, apyDiff } = decidePositions(p, v, e);
-          const tokenName = extractTokenName(pair.paradex);
-          tbody.innerHTML += `
-            <tr class="main-row" data-index="${i}">
-              <td>${tokenName}</td>
-              <td>${getApyBadge(apyDiff)}</td>
-              <td>${longExchange}</td>
-              <td>${shortExchange}</td>
-              <td class="${p >= 0 ? 'positive' : 'negative'}">${p.toFixed(6)}</td>
-              <td class="${v >= 0 ? 'positive' : 'negative'}">${v.toFixed(6)}</td>
-              <td class="${e !== null ? (e >= 0 ? 'positive' : 'negative') : ''}">${e !== null ? e.toFixed(6) : '-'}</td>
-              <td>${new Date().toLocaleTimeString()}</td>
-            </tr>
-          `;
-        } catch (e) {
-          console.error('Erreur pour', pair.paradex, e);
-          tbody.innerHTML += `<tr><td colspan="8" class="negative">Erreur chargement ${pair.paradex}: ${e.message}</td></tr>`;
-        }
-      }
-    }
-
-    // Initial load
     update();
   </script>
 </body>
