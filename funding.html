@@ -1,129 +1,295 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>G12 - Funding Rate Graph</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>G12 - Funding Rates avec Graphique</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { background: #0a101a; color: #eaf6ff; font-family: 'Inter', sans-serif; margin: 0; }
-    .container { max-width: 1000px; margin: 2rem auto; padding: 1rem; background: #121620; border-radius: 16px; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
-    canvas { background: #fff; border-radius: 12px; padding: 1rem; }
-    h1 { text-align: center; color: #4fd1c5; }
-    select { margin-bottom: 1rem; font-size: 1rem; padding: 0.4rem; border-radius: 8px; }
+    body {
+      background: #0a101a;
+      color: #eaf6ff;
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+    }
+    .glass-card {
+      background: rgba(18, 22, 32, 0.92);
+      border-radius: 20px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      padding: 2.5rem 1.5rem;
+      max-width: 900px;
+      margin: 2rem auto;
+      text-align: center;
+    }
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      margin-top: 1.5rem;
+      cursor: pointer;
+    }
+    table {
+      width: 100%;
+      min-width: 700px;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 14px;
+    }
+    th,
+    td {
+      padding: 1rem 0.6rem;
+      text-align: center;
+      font-size: 1.08rem;
+    }
+    th {
+      background: rgba(44, 83, 100, 0.75);
+      color: #b7eaff;
+    }
+    tr:not(:last-child) td {
+      border-bottom: 1px solid rgba(72, 202, 228, 0.1);
+    }
+    .positive {
+      color: #38e38d;
+      font-weight: 700;
+    }
+    .negative {
+      color: #ff6b81;
+      font-weight: 700;
+    }
+    .apy-badge {
+      display: inline-block;
+      padding: 0.2em 0.7em;
+      border-radius: 12px;
+      font-size: 1.1em;
+      font-weight: 700;
+      background: linear-gradient(90deg, #38a1db 0%, #4fd1c5 100%);
+      color: #fff;
+    }
+    #chart-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    #chart-container {
+      background: #121620;
+      border-radius: 20px;
+      padding: 1.5rem 2rem;
+      max-width: 90vw;
+      max-height: 80vh;
+      box-shadow: 0 0 20px #38a1dbaa;
+      position: relative;
+    }
+    #close-chart {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: #ff6b81;
+      border: none;
+      color: white;
+      font-weight: 700;
+      border-radius: 12px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    button {
+      margin-bottom: 1.2rem;
+      background: linear-gradient(90deg, #38a1db 0%, #4fd1c5 100%);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 0.7em 1.5em;
+      font-size: 1.08em;
+      font-weight: 700;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Graphique APY - Moyenne Quotidienne</h1>
-    <select id="token-select"></select>
-    <canvas id="fundingChart" height="120"></canvas>
+  <section class="glass-card">
+    <h1>📊 Arbitrage Funding Rate <span style="background: linear-gradient(90deg, #38a1db 0%, #4fd1c5 100%); color: #fff; padding: 0.18em 0.7em; border-radius: 8px;">VEST vs Paradex vs Extend</span></h1>
+    <button onclick="update()">🔄 Actualiser</button>
+    <div class="table-container">
+      <table id="main-table">
+        <thead>
+          <tr>
+            <th>Token</th>
+            <th>APY estimé (%)</th>
+            <th>Long sur</th>
+            <th>Short sur</th>
+            <th>Funding Paradex</th>
+            <th>Funding VEST</th>
+            <th>Funding Extend</th>
+            <th>Dernier update</th>
+          </tr>
+        </thead>
+        <tbody id="body"></tbody>
+      </table>
+    </div>
+    <div style="text-align: center; margin-top: 1.2rem; color: #b7eaff; font-size: 0.98em;">
+      Cliquez sur une ligne pour voir le graphique APY moyen sur 7 jours.<br />
+      Cliquez hors du graphique ou sur la croix pour fermer.
+    </div>
+  </section>
+
+  <div id="chart-modal">
+    <div id="chart-container">
+      <button id="close-chart">✖️ Fermer</button>
+      <canvas id="apy-chart" width="800" height="400"></canvas>
+    </div>
   </div>
 
   <script>
-    const chartCtx = document.getElementById('fundingChart').getContext('2d');
-    let chart;
+    const pairs = ["ETH", "BTC", "SOL", "LINK", "DOGE"];
+    const history = {};
 
-    const tokens = [
-      { name: "BTC", vest: "BTC-PERP", extend: "BTC-USD", paradex: "BTC-USD-PERP" },
-      { name: "ETH", vest: "ETH-PERP", extend: "ETH-USD", paradex: "ETH-USD-PERP" },
-      { name: "SOL", vest: "SOL-PERP", extend: "SOL-USD", paradex: "SOL-USD-PERP" }
-    ];
-
-    async function fetchVestHistory(symbol) {
-      const now = Date.now();
-      const url = `https://corsproxy.io/?https://serverprod.vest.exchange/v2/funding/history?symbol=${symbol}&interval=1d&limit=7&endTime=${now}`;
-      const res = await fetch(url);
+    async function getFundingHistory(source, pair) {
+      const res = await fetch(`https://api.geckoterminal.xyz/api/v2/networks/base/pools/${source}-${pair.toLowerCase()}/funding_rates`);
       const data = await res.json();
-      return data.map(d => ({ date: new Date(d.time).toISOString().slice(0, 10), rate: parseFloat(d.oneHrFundingRate) * 24 * 365 * 100 }));
+      return data.data.attributes.history;
     }
 
-    async function fetchExtendHistory(symbol) {
-      const now = Date.now();
-      const start = now - 8 * 24 * 60 * 60 * 1000;
-      const url = `https://corsproxy.io/?https://api.extended.exchange/api/v1/info/${symbol}/funding?startTime=${start}&endTime=${now}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      const grouped = {};
-      data.data.forEach(item => {
-        const d = new Date(item.t).toISOString().slice(0, 10);
-        if (!grouped[d]) grouped[d] = [];
-        grouped[d].push(parseFloat(item.f));
-      });
-      return Object.entries(grouped).map(([date, rates]) => ({ date, rate: (rates.reduce((a,b) => a + b, 0) / rates.length) * 24 * 365 * 100 }));
+    async function getParadexHistory(pair) {
+      return getFundingHistory("paradex", pair);
     }
 
-    async function fetchParadexHistory(market) {
-      const now = Date.now();
-      const start = now - 8 * 24 * 60 * 60 * 1000;
-      const url = `https://corsproxy.io/?https://api.prod.paradex.trade/v1/funding/data?market=${market}&start_at=${start}&end_at=${now}&page_size=5000`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('Paradex history API');
-      const data = await res.json();
-      const grouped = {};
-      data.results.forEach(item => {
-        const d = new Date(item.created_at).toISOString().slice(0, 10);
-        const rate = parseFloat(item.funding_rate);
-        if (!isNaN(rate)) {
-          if (!grouped[d]) grouped[d] = [];
-          grouped[d].push(rate);
-        }
-      });
-      return Object.entries(grouped).map(([date, rates]) => ({ date, rate: (rates.reduce((a,b) => a + b, 0) / rates.length) * 3 * 365 * 100 }));
+    async function getVestHistory(pair) {
+      return getFundingHistory("vest", pair);
     }
 
-    async function loadChart(token) {
-      const [vest, extend, paradex] = await Promise.all([
-        fetchVestHistory(token.vest),
-        fetchExtendHistory(token.extend),
-        fetchParadexHistory(token.paradex)
-      ]);
+    async function getExtendHistory(pair) {
+      return getFundingHistory("extend", pair);
+    }
 
-      const allDates = [...new Set([...vest, ...extend, ...paradex].map(d => d.date))].sort();
-
-      function toMap(arr) {
-        return Object.fromEntries(arr.map(d => [d.date, d.rate.toFixed(2)]));
-      }
-
-      const vMap = toMap(vest);
-      const eMap = toMap(extend);
-      const pMap = toMap(paradex);
-
-      const labels = allDates;
-      const vestData = labels.map(d => vMap[d] || null);
-      const extendData = labels.map(d => eMap[d] || null);
-      const paradexData = labels.map(d => pMap[d] || null);
-
-      if (chart) chart.destroy();
-      chart = new Chart(chartCtx, {
-        type: 'line',
+    function showChartForPair(pair) {
+      const labels = Array.from({ length: 7 }, (_, i) => `J-${6 - i}`);
+      const ctx = document.getElementById("apy-chart").getContext("2d");
+      if (window.apyChart) window.apyChart.destroy();
+      window.apyChart = new Chart(ctx, {
+        type: "line",
         data: {
           labels,
           datasets: [
-            { label: 'VEST APY (%)', data: vestData, borderColor: '#38a1db', fill: false },
-            { label: 'Extend APY (%)', data: extendData, borderColor: '#4fd1c5', fill: false },
-            { label: 'Paradex APY (%)', data: paradexData, borderColor: '#ff6b81', fill: false }
+            {
+              label: "Paradex",
+              data: history[pair].paradex,
+              borderColor: "#4fd1c5",
+              fill: false,
+              tension: 0.3
+            },
+            {
+              label: "Vest",
+              data: history[pair].vest,
+              borderColor: "#38a1db",
+              fill: false,
+              tension: 0.3
+            },
+            {
+              label: "Extend",
+              data: history[pair].extend,
+              borderColor: "#ff6b81",
+              fill: false,
+              tension: 0.3
+            }
           ]
         },
         options: {
+          responsive: true,
+          plugins: {
+            legend: { labels: { color: "white" } }
+          },
           scales: {
-            y: { title: { display: true, text: 'APY (%)' } },
-            x: { title: { display: true, text: 'Date' } }
+            x: { ticks: { color: "white" } },
+            y: {
+              ticks: {
+                color: "white",
+                callback: val => val + "%"
+              }
+            }
           }
         }
       });
+      document.getElementById("chart-modal").style.display = "flex";
     }
 
-    const select = document.getElementById("token-select");
-    tokens.forEach((t, i) => {
-      const opt = document.createElement("option");
-      opt.value = i;
-      opt.textContent = t.name;
-      select.appendChild(opt);
-    });
-    select.addEventListener("change", e => loadChart(tokens[e.target.value]));
+    async function update() {
+      const tbody = document.getElementById("body");
+      tbody.innerHTML = "";
 
-    loadChart(tokens[0]);
+      for (const pair of pairs) {
+        const [paradex, vest, extend] = await Promise.all([
+          getParadexHistory(pair),
+          getVestHistory(pair),
+          getExtendHistory(pair)
+        ]);
+
+        const avg = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
+        const last = arr => arr[arr.length - 1];
+
+        const avgParadex = avg(paradex.slice(-7));
+        const avgVest = avg(vest.slice(-7));
+        const avgExtend = avg(extend.slice(-7));
+
+        history[pair] = {
+          paradex: paradex.slice(-7),
+          vest: vest.slice(-7),
+          extend: extend.slice(-7)
+        };
+
+        const diff1 = avgParadex - avgVest;
+        const diff2 = avgParadex - avgExtend;
+
+        let bestLong, bestShort, estApy;
+        if (diff1 > diff2 && diff1 > 0) {
+          bestLong = "Vest";
+          bestShort = "Paradex";
+          estApy = diff1;
+        } else if (diff2 > 0) {
+          bestLong = "Extend";
+          bestShort = "Paradex";
+          estApy = diff2;
+        } else {
+          bestLong = "-";
+          bestShort = "-";
+          estApy = 0;
+        }
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${pair}</td>
+          <td><span class="apy-badge">${estApy.toFixed(2)}%</span></td>
+          <td>${bestLong}</td>
+          <td>${bestShort}</td>
+          <td class="${avgParadex > 0 ? "positive" : "negative"}">${avgParadex.toFixed(2)}%</td>
+          <td class="${avgVest > 0 ? "positive" : "negative"}">${avgVest.toFixed(2)}%</td>
+          <td class="${avgExtend > 0 ? "positive" : "negative"}">${avgExtend.toFixed(2)}%</td>
+          <td>${new Date().toLocaleTimeString()}</td>
+        `;
+        tr.addEventListener("click", () => showChartForPair(pair));
+        tbody.appendChild(tr);
+      }
+    }
+
+    document.getElementById("close-chart").addEventListener("click", () => {
+      document.getElementById("chart-modal").style.display = "none";
+    });
+
+    window.addEventListener("click", function (e) {
+      const modal = document.getElementById("chart-modal");
+      if (e.target === modal) {
+        modal.style.display = "none";
+      }
+    });
+
+    update();
   </script>
 </body>
 </html>
