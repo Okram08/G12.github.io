@@ -68,17 +68,17 @@
     }
 
     async function getParadexRate(market) {
-      const url = https://corsproxy.io/?https://api.prod.paradex.trade/v1/funding/data?market=${market};
+      const url = `https://corsproxy.io/?https://api.prod.paradex.trade/v1/funding/data?market=${market}`;
       const res = await fetch(url);
-      if (!res.ok) throw new Error(Paradex API ${res.status});
+      if (!res.ok) throw new Error(`Paradex API ${res.status}`);
       const json = await res.json();
       return parseFloat(json.results?.[0]?.funding_rate);
     }
 
     async function getVestRate(symbol) {
-      const url = https://corsproxy.io/?https://serverprod.vest.exchange/v2/funding/history?symbol=${symbol}&limit=1;
+      const url = `https://corsproxy.io/?https://serverprod.vest.exchange/v2/funding/history?symbol=${symbol}&limit=1`;
       const res = await fetch(url);
-      if (!res.ok) throw new Error(VEST API ${res.status});
+      if (!res.ok) throw new Error(`VEST API ${res.status}`);
       const json = await res.json();
       return parseFloat(json?.[0]?.oneHrFundingRate);
     }
@@ -86,9 +86,9 @@
     async function getExtendRate(market) {
       const end = Date.now();
       const start = end - 2 * 60 * 60 * 1000;
-      const url = https://corsproxy.io/?https://api.extended.exchange/api/v1/info/${market}/funding?startTime=${start}&endTime=${end}&limit=1;
+      const url = `https://corsproxy.io/?https://api.extended.exchange/api/v1/info/${market}/funding?startTime=${start}&endTime=${end}&limit=1`;
       const res = await fetch(url);
-      if (!res.ok) throw new Error(Extend API ${res.status});
+      if (!res.ok) throw new Error(`Extend API ${res.status}`);
       const json = await res.json();
       if (!json.data || !json.data.length) return null;
       return parseFloat(json.data[0].f);
@@ -130,11 +130,11 @@
 
     function getApyBadge(apy) {
       if (parseFloat(apy) > 0) {
-        return <span class="apy-badge positive">+${apy}%</span>;
+        return `<span class="apy-badge positive">+${apy}%</span>`;
       } else if (parseFloat(apy) < 0) {
-        return <span class="apy-badge negative">${apy}%</span>;
+        return `<span class="apy-badge negative">${apy}%</span>`;
       } else {
-        return <span class="apy-badge">${apy}%</span>;
+        return `<span class="apy-badge">${apy}%</span>`;
       }
     }
 
@@ -152,7 +152,7 @@
           ]);
           const { longExchange, shortExchange, apyDiff } = decidePositions(p, v, e);
           const tokenName = extractTokenName(pair.paradex);
-          tbody.innerHTML += 
+          tbody.innerHTML += `
             <tr class="main-row" data-index="${i}">
               <td>${tokenName}</td>
               <td>${getApyBadge(apyDiff)}</td>
@@ -163,10 +163,10 @@
               <td class="${e !== null ? (e >= 0 ? 'positive' : 'negative') : ''}">${e !== null ? e.toFixed(6) : '-'}</td>
               <td>${new Date().toLocaleTimeString()}</td>
             </tr>
-          ;
+          `;
         } catch (e) {
           console.error('Erreur pour', pair.paradex, e);
-          tbody.innerHTML += <tr><td colspan="8" class="negative">Erreur chargement ${pair.paradex}: ${e.message}</td></tr>;
+          tbody.innerHTML += `<tr><td colspan="8" class="negative">Erreur chargement ${pair.paradex}: ${e.message}</td></tr>`;
         }
       }
     }
