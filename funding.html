@@ -494,30 +494,30 @@
     </nav>
   </footer>
   <script>
-    // Burger menu JS
-    const burger = document.querySelector('.burger');
-    const mobileNav = document.querySelector('.mobile-nav');
-    const overlay = document.querySelector('.mobile-nav-overlay');
-    function toggleMobileMenu() {
-      burger.classList.toggle('active');
-      mobileNav.classList.toggle('open');
-      overlay.classList.toggle('open');
-      burger.setAttribute('aria-expanded', burger.classList.contains('active'));
-      mobileNav.setAttribute('aria-hidden', !burger.classList.contains('active'));
-      document.body.style.overflow = burger.classList.contains('active') ? 'hidden' : '';
+  // Burger menu JS
+  const burger = document.querySelector('.burger');
+  const mobileNav = document.querySelector('.mobile-nav');
+  const overlay = document.querySelector('.mobile-nav-overlay');
+  function toggleMobileMenu() {
+    burger.classList.toggle('active');
+    mobileNav.classList.toggle('open');
+    overlay.classList.toggle('open');
+    burger.setAttribute('aria-expanded', burger.classList.contains('active'));
+    mobileNav.setAttribute('aria-hidden', !burger.classList.contains('active'));
+    document.body.style.overflow = burger.classList.contains('active') ? 'hidden' : '';
+  }
+  burger.addEventListener('click', toggleMobileMenu);
+  overlay.addEventListener('click', toggleMobileMenu);
+  window.addEventListener('resize', function() {
+    if(window.innerWidth > 900) {
+      burger.classList.remove('active');
+      mobileNav.classList.remove('open');
+      overlay.classList.remove('open');
+      document.body.style.overflow = '';
     }
-    burger.addEventListener('click', toggleMobileMenu);
-    overlay.addEventListener('click', toggleMobileMenu);
-    window.addEventListener('resize', function() {
-      if(window.innerWidth > 900) {
-        burger.classList.remove('active');
-        mobileNav.classList.remove('open');
-        overlay.classList.remove('open');
-        document.body.style.overflow = '';
-      }
-    });
+  });
 
-    // Funding table JS (reprend la logique de ta page funding)
+  // Funding table JS
 
   const pairs = [
     { paradex: "HYPE-USD-PERP", vest: "HYPE-PERP" },
@@ -565,7 +565,7 @@
     return json.map(e => ({
       rate: parseFloat(e.oneHrFundingRate),
       ts: e.ts || e.timestamp || null
-    })).filter(x => !isNaN(x.rate));
+    })).filter(x => !isNaN(x.rate) && x.ts);
   }
 
   // --- HISTORIQUE PARADEX sur 7j (21 points) ---
@@ -581,7 +581,7 @@
         rate: parseFloat(e.funding_rate),
         ts: e.created_at
       }))
-      .filter(x => !isNaN(x.rate))
+      .filter(x => !isNaN(x.rate) && x.ts)
       .sort((a, b) => a.ts - b.ts);
   }
 
@@ -647,6 +647,16 @@
     return apy7d;
   }
 
+  // Aligne la série Paradex sur les labels de VEST (null si pas de point pour ce jour)
+  function alignDataOnLabels(vestLabels, paradexApy7d, paradexLabels) {
+    const map = {};
+    paradexLabels.forEach((l, i) => { map[l] = paradexApy7d[i].apy; });
+    return vestLabels.map(l => map[l] !== undefined ? map[l] : null);
+  }
+
+  // Pour détruire l'ancien graphique Chart.js
+  let currentChart = null;
+
   async function update() {
     const tbody = document.getElementById("body");
     tbody.innerHTML = '';
@@ -685,6 +695,7 @@
       row.onclick = async function() {
         // Fermer tout graphique ouvert
         Array.from(document.querySelectorAll('.chart-row')).forEach(r => r.remove());
+        if (currentChart) { currentChart.destroy(); currentChart = null; }
 
         const idx = parseInt(this.getAttribute('data-index'));
         const pair = pairs[idx];
@@ -709,7 +720,6 @@
         // Charger les historiques et afficher la courbe
         try {
           chartTd.querySelector('canvas').style.opacity = 0.5;
-          // On prend suffisamment de points pour couvrir 7j glissants
           const [vestHistory, paradexHistory] = await Promise.all([
             getVestHistory(pair.vest, 168),
             getParadexHistory(pair.paradex, 21)
@@ -728,9 +738,14 @@
             return `${d.getDate()}/${d.getMonth()+1}`;
           });
 
-          // Chart.js
+          // Si pas assez de données, affiche un message
+          if (!vestLabels.length && !paradexLabels.length) {
+            chartTd.innerHTML = `<div style="color:#ff6b81;">Pas assez de données pour afficher la courbe APY 7j.</div>`;
+            return;
+          }
+
           const ctx = document.getElementById(`chart-${idx}`).getContext('2d');
-          new Chart(ctx, {
+          currentChart = new Chart(ctx, {
             type: 'line',
             data: {
               labels: vestLabels,
@@ -776,13 +791,6 @@
         }
       };
     });
-  }
-
-  // Aligne la série Paradex sur les labels de VEST (null si pas de point pour ce jour)
-  function alignDataOnLabels(vestLabels, paradexApy7d, paradexLabels) {
-    const map = {};
-    paradexLabels.forEach((l, i) => { map[l] = paradexApy7d[i].apy; });
-    return vestLabels.map(l => map[l] !== undefined ? map[l] : null);
   }
 
   // Chargement initial
