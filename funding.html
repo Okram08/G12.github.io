@@ -25,7 +25,7 @@
 </head>
 <body>
   <section class="glass-card">
-    <h1>📊 Arbitrage Funding Rate <span style="background:linear-gradient(90deg,#38a1db 0%,#4fd1c5 100%);color:#fff;padding:0.18em 0.7em;border-radius:8px;">VEST vs Paradex</span></h1>
+    <h1>📊 Arbitrage Funding Rate <span style="background:linear-gradient(90deg,#38a1db 0%,#4fd1c5 100%);color:#fff;padding:0.18em 0.7em;border-radius:8px;">VEST vs Paradex vs Extend</span></h1>
     <button onclick="update()" style="margin-bottom:1.2rem;background:linear-gradient(90deg,#38a1db 0%,#4fd1c5 100%);color:#fff;border:none;border-radius:10px;padding:0.7em 1.5em;font-size:1.08em;font-weight:700;cursor:pointer;">🔄 Actualiser</button>
     <div class="table-container">
       <table id="main-table">
@@ -51,19 +51,20 @@
   </section>
   <script>
     const pairs = [
-      { paradex: "HYPE-USD-PERP", vest: "HYPE-PERP" },
-      { paradex: "S-USD-PERP", vest: "S-PERP" },
-      { paradex: "ETH-USD-PERP", vest: "ETH-PERP" },
-      { paradex: "SEI-USD-PERP", vest: "SEI-PERP" },
-      { paradex: "SOL-USD-PERP", vest: "SOL-PERP" },
-      { paradex: "BERA-USD-PERP", vest: "BERA-PERP" },
-      { paradex: "UNI-USD-PERP", vest: "UNI-PERP" },
-      { paradex: "SPX-USD-PERP", vest: "SPX-PERP" },
-      { paradex: "BTC-USD-PERP", vest: "BTC-PERP" }
+      { paradex: "HYPE-USD-PERP", vest: "HYPE-PERP", extend: "HYPE-USD" },
+      { paradex: "S-USD-PERP", vest: "S-PERP", extend: "S-USD" },
+      { paradex: "ETH-USD-PERP", vest: "ETH-PERP", extend: "ETH-USD" },
+      { paradex: "SEI-USD-PERP", vest: "SEI-PERP", extend: "SEI-USD" },
+      { paradex: "SOL-USD-PERP", vest: "SOL-PERP", extend: "SOL-USD" },
+      { paradex: "BERA-USD-PERP", vest: "BERA-PERP", extend: "BERA-USD" },
+      { paradex: "UNI-USD-PERP", vest: "UNI-PERP", extend: "UNI-USD" },
+      { paradex: "SPX-USD-PERP", vest: "SPX-PERP", extend: "SPX-USD" },
+      { paradex: "BTC-USD-PERP", vest: "BTC-PERP", extend: "BTC-USD" }
     ];
-    const FUNDING_FREQ = { paradex: 3, vest: 24 };
+    const FUNDING_FREQ = { paradex: 3, vest: 24, extend: 24 };
 
     function extractTokenName(pairName) { return pairName.split('-')[0]; }
+
     async function getParadexRate(market) {
       const url = `https://corsproxy.io/?https://api.prod.paradex.trade/v1/funding/data?market=${market}`;
       const res = await fetch(url);
@@ -103,6 +104,24 @@
         .filter(x => !isNaN(x.rate) && x.ts)
         .sort((a, b) => a.ts - b.ts);
     }
+    // --- HISTORIQUE EXTEND sur 7j (168 points, 1/h) ---
+    async function getExtendHistory(market) {
+      const end = Date.now();
+      const start = end - 7*24*60*60*1000;
+      const url = `https://corsproxy.io/?https://api.extended.exchange/api/v1/info/${market}/funding?startTime=${start}&endTime=${end}&limit=168`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Extend API ${res.status}`);
+      const json = await res.json();
+      if (!json.data) return [];
+      return json.data
+        .map(e => ({
+          rate: parseFloat(e.f),
+          ts: e.T // timestamp en ms
+        }))
+        .filter(x => !isNaN(x.rate) && x.ts)
+        .sort((a, b) => a.ts - b.ts);
+    }
+
     function decidePositions(p, v) {
       const TOL = 0.00001;
       const apy_paradex = p * FUNDING_FREQ.paradex * 365 * 100;
@@ -178,7 +197,7 @@
           const chartTd = document.createElement('td');
           chartTd.colSpan = 7;
           chartTd.innerHTML = `<div class="chart-container" style="text-align:center;">
-            <b>APY 7j (VEST & Paradex)</b><br>
+            <b>APY 7j (VEST, Paradex, Extend)</b><br>
             <canvas id="chart-${idx}" height="120"></canvas>
             <div style="font-size:0.95em;color:#b7eaff;margin-top:0.6em;">APY annualisé calculé à partir des historiques de funding rates (7 derniers jours)</div>
           </div>`;
@@ -188,16 +207,16 @@
 
           try {
             chartTd.querySelector('canvas').style.opacity = 0.5;
-            const [vestHistory, paradexHistory] = await Promise.all([
+            const [vestHistory, paradexHistory, extendHistory] = await Promise.all([
               getVestHistory(pair.vest),
-              getParadexHistory(pair.paradex)
+              getParadexHistory(pair.paradex),
+              getExtendHistory(pair.extend)
             ]);
-            if (!vestHistory.length && !paradexHistory.length) {
+            if (!vestHistory.length && !paradexHistory.length && !extendHistory.length) {
               chartTd.innerHTML = `<div style="color:#ff6b81;">Pas assez de données pour afficher la courbe APY 7j.<br>
-              (Vérifie que le token a bien 7 jours d'historique de funding sur Paradex et VEST)</div>`;
+              (Vérifie que le token a bien 7 jours d'historique de funding sur Paradex, VEST et Extend)</div>`;
               return;
             }
-            // Préparer les données "scatter" (x = date, y = APY annualisé)
             const vestData = vestHistory.map(e => ({
               x: new Date(e.ts),
               y: e.rate * FUNDING_FREQ.vest * 365 * 100
@@ -205,6 +224,10 @@
             const paradexData = paradexHistory.map(e => ({
               x: new Date(e.ts),
               y: e.rate * FUNDING_FREQ.paradex * 365 * 100
+            }));
+            const extendData = extendHistory.map(e => ({
+              x: new Date(e.ts),
+              y: e.rate * FUNDING_FREQ.extend * 365 * 100
             }));
             const ctx = document.getElementById(`chart-${idx}`).getContext('2d');
             currentChart = new Chart(ctx, {
@@ -228,6 +251,16 @@
                     backgroundColor: 'rgba(56,161,219,0.12)',
                     showLine: true,
                     pointRadius: 2,
+                    borderWidth: 2,
+                    tension: 0.2
+                  },
+                  {
+                    label: 'APY Extend',
+                    data: extendData,
+                    borderColor: '#e6c13e',
+                    backgroundColor: 'rgba(230,193,62,0.12)',
+                    showLine: true,
+                    pointRadius: 0,
                     borderWidth: 2,
                     tension: 0.2
                   }
@@ -261,7 +294,6 @@
         };
       });
     }
-
     update();
   </script>
 </body>
