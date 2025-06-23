@@ -59,8 +59,8 @@
     ];
 
     const FUNDING_FREQ = {
-      paradex: 3,   // 3 fois par jour (8h)
-      vest: 24      // 24 fois par jour (1h)
+      paradex: 3,   // 3 fois par jour
+      vest: 24      // 24 fois par jour
     };
 
     function extractTokenName(pairName) {
@@ -85,7 +85,7 @@
 
     async function getExtendRate(market) {
       const end = Date.now();
-      const start = end - 2 * 60 * 60 * 1000; // 2 dernières heures pour être sûr d'avoir un point
+      const start = end - 2 * 60 * 60 * 1000;
       const url = `https://corsproxy.io/?https://api.extended.exchange/api/v1/info/${market}/funding?startTime=${start}&endTime=${end}&limit=1`;
       const res = await fetch(url);
       if (!res.ok) throw new Error(`Extend API ${res.status}`);
@@ -94,37 +94,38 @@
       return parseFloat(json.data[0].f);
     }
 
-    function decidePositions(p, v) {
+    function decidePositions(p, v, e) {
       const TOL = 0.00001;
-      const apy_paradex = p * FUNDING_FREQ.paradex * 365 * 100;
-      const apy_vest = v * FUNDING_FREQ.vest * 365 * 100;
-      const p_sign = p > TOL ? 1 : (p < -TOL ? -1 : 0);
-      const v_sign = v > TOL ? 1 : (v < -TOL ? -1 : 0);
+      const rates = [
+        { name: 'Paradex', rate: p, freq: FUNDING_FREQ.paradex },
+        { name: 'VEST', rate: v, freq: FUNDING_FREQ.vest },
+        { name: 'Extend', rate: e, freq: FUNDING_FREQ.vest } // Assume 1h like Vest
+      ];
 
-      if (p_sign === -1 && v_sign === 1) {
-        const profit = apy_vest - apy_paradex;
-        if (profit > 0) {
-          return { longExchange: 'Paradex', shortExchange: 'VEST', apyDiff: profit.toFixed(2) };
-        }
-      } else if (p_sign === 1 && v_sign === -1) {
-        const profit = apy_paradex - apy_vest;
-        if (profit > 0) {
-          return { longExchange: 'VEST', shortExchange: 'Paradex', apyDiff: profit.toFixed(2) };
+      let best = { longExchange: '-', shortExchange: '-', apyDiff: '0.00' };
+
+      for (let i = 0; i < rates.length; i++) {
+        for (let j = 0; j < rates.length; j++) {
+          if (i === j || rates[i].rate == null || rates[j].rate == null) continue;
+
+          const long = rates[i];
+          const short = rates[j];
+
+          const apyLong = long.rate * long.freq * 365 * 100;
+          const apyShort = short.rate * short.freq * 365 * 100;
+          const profit = apyShort - apyLong;
+
+          if (profit > TOL && profit > parseFloat(best.apyDiff)) {
+            best = {
+              longExchange: long.name,
+              shortExchange: short.name,
+              apyDiff: profit.toFixed(2)
+            };
+          }
         }
       }
-      if (p_sign === -1 && v_sign === 0) {
-        const profit = -apy_paradex;
-        if (profit > 0) {
-          return { longExchange: 'Paradex', shortExchange: 'VEST', apyDiff: profit.toFixed(2) };
-        }
-      }
-      if (v_sign === -1 && p_sign === 0) {
-        const profit = -apy_vest;
-        if (profit > 0) {
-          return { longExchange: 'VEST', shortExchange: 'Paradex', apyDiff: profit.toFixed(2) };
-        }
-      }
-      return { longExchange: '-', shortExchange: '-', apyDiff: '0.00' };
+
+      return best;
     }
 
     function getApyBadge(apy) {
@@ -149,7 +150,7 @@
             getVestRate(pair.vest),
             getExtendRate(pair.extend)
           ]);
-          const { longExchange, shortExchange, apyDiff } = decidePositions(p, v);
+          const { longExchange, shortExchange, apyDiff } = decidePositions(p, v, e);
           const tokenName = extractTokenName(pair.paradex);
           tbody.innerHTML += `
             <tr class="main-row" data-index="${i}">
@@ -165,15 +166,12 @@
           `;
         } catch (e) {
           console.error('Erreur pour', pair.paradex, e);
-          tbody.innerHTML += `
-            <tr>
-              <td colspan="8" class="negative">Erreur chargement ${pair.paradex}: ${e.message}</td>
-            </tr>`;
+          tbody.innerHTML += `<tr><td colspan="8" class="negative">Erreur chargement ${pair.paradex}: ${e.message}</td></tr>`;
         }
       }
     }
 
-    // Chargement initial
+    // Initial load
     update();
   </script>
 </body>
