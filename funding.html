@@ -4,35 +4,114 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>G12 - Funding Rates</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+    rel="stylesheet"
+  />
   <link rel="icon" href="favicon.ico" type="image/x-icon" />
   <style>
-    body { background: #0a101a; color: #eaf6ff; font-family: 'Inter', sans-serif; margin:0; }
-    .glass-card { background: rgba(18,22,32,0.92); border-radius: 20px; box-shadow: 0 6px 20px rgba(0,0,0,0.3); padding: 2.5rem 1.5rem; max-width: 900px; margin: 2rem auto; text-align: center; }
-    .table-container { width: 100%; overflow-x: auto; margin-top: 1.5rem; }
-    table { width: 100%; min-width: 800px; border-collapse: separate; border-spacing: 0; background: rgba(255,255,255,0.04); border-radius: 14px; }
-    th, td { padding: 1rem 0.6rem; text-align: center; font-size: 1.08rem; }
-    th { background: rgba(44, 83, 100, 0.75); color: #b7eaff; }
-    tr:not(:last-child) td { border-bottom: 1px solid rgba(72, 202, 228, 0.10); }
-    .positive { color: #38e38d; font-weight: 700; }
-    .negative { color: #ff6b81; font-weight: 700; }
-    .apy-badge { display: inline-block; padding: 0.2em 0.7em; border-radius: 12px; font-size: 1.1em; font-weight: 700; background: linear-gradient(90deg,#38a1db 0%,#4fd1c5 100%); color: #fff; }
-    .confidence-high { color: #38e38d; font-weight: 700; }
-    .confidence-medium { color: #ffbc42; font-weight: 700; }
-    .confidence-low { color: #ff6b81; font-weight: 700; }
+    body {
+      background: #0a101a;
+      color: #eaf6ff;
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+    }
+    .glass-card {
+      background: rgba(18, 22, 32, 0.92);
+      border-radius: 20px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      padding: 2.5rem 1.5rem;
+      max-width: 900px;
+      margin: 2rem auto;
+      text-align: center;
+    }
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      margin-top: 1.5rem;
+    }
+    table {
+      width: 100%;
+      min-width: 700px;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 14px;
+    }
+    th,
+    td {
+      padding: 1rem 0.6rem;
+      text-align: center;
+      font-size: 1.08rem;
+    }
+    th {
+      background: rgba(44, 83, 100, 0.75);
+      color: #b7eaff;
+    }
+    tr:not(:last-child) td {
+      border-bottom: 1px solid rgba(72, 202, 228, 0.1);
+    }
+    .positive {
+      color: #38e38d;
+      font-weight: 700;
+    }
+    .negative {
+      color: #ff6b81;
+      font-weight: 700;
+    }
+    .apy-badge {
+      display: inline-block;
+      padding: 0.2em 0.7em;
+      border-radius: 12px;
+      font-size: 1.1em;
+      font-weight: 700;
+      background: linear-gradient(90deg, #38a1db 0%, #4fd1c5 100%);
+      color: #fff;
+    }
+    small {
+      font-size: 0.75em;
+      color: #888;
+      display: block;
+      margin-top: 0.15em;
+    }
   </style>
 </head>
 <body>
   <section class="glass-card">
-    <h1>📊 Arbitrage Funding Rate <span style="background:linear-gradient(90deg,#38a1db 0%,#4fd1c5 100%);color:#fff;padding:0.18em 0.7em;border-radius:8px;">VEST vs Paradex vs Extend</span></h1>
-    <button onclick="update()" style="margin-bottom:1.2rem;background:linear-gradient(90deg,#38a1db 0%,#4fd1c5 100%);color:#fff;border:none;border-radius:10px;padding:0.7em 1.5em;font-size:1.08em;font-weight:700;cursor:pointer;">🔄 Actualiser</button>
+    <h1>
+      📊 Arbitrage Funding Rate
+      <span
+        style="
+          background: linear-gradient(90deg, #38a1db 0%, #4fd1c5 100%);
+          color: #fff;
+          padding: 0.18em 0.7em;
+          border-radius: 8px;
+        "
+        >VEST vs Paradex vs Extend</span
+      >
+    </h1>
+    <button
+      onclick="update()"
+      style="
+        margin-bottom: 1.2rem;
+        background: linear-gradient(90deg, #38a1db 0%, #4fd1c5 100%);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: 0.7em 1.5em;
+        font-size: 1.08em;
+        font-weight: 700;
+        cursor: pointer;
+      "
+    >
+      🔄 Actualiser
+    </button>
     <div class="table-container">
       <table id="main-table">
         <thead>
           <tr>
             <th>Token</th>
             <th>APY estimé (%)</th>
-            <th>Confiance APY</th>
             <th>Long sur</th>
             <th>Short sur</th>
             <th>Funding Paradex</th>
@@ -44,27 +123,35 @@
         <tbody id="body"></tbody>
       </table>
     </div>
-    <div style="text-align:center; margin-top:1.2rem; color:#b7eaff; font-size:0.98em;">
+    <div
+      style="
+        text-align: center;
+        margin-top: 1.2rem;
+        color: #b7eaff;
+        font-size: 0.98em;
+      "
+    >
       Cliquez sur "Actualiser" pour recharger les données.<br />
-      Si aucun APY n'est indiqué, c'est que l'algorithme estime que l'arbitrage n'est pas profitable.
+      Si aucun APY n'est indiqué, c'est que l'algorithme estime que
+      l'arbitrage n'est pas profitable.
     </div>
   </section>
   <script>
     const pairs = [
-      { paradex: "HYPE-USD-PERP", vest: "HYPE-PERP", extend: "HYPE-USD" },
-      { paradex: "S-USD-PERP", vest: "S-PERP", extend: "S-USD" },
-      { paradex: "ETH-USD-PERP", vest: "ETH-PERP", extend: "ETH-USD" },
-      { paradex: "SEI-USD-PERP", vest: "SEI-PERP", extend: "SEI-USD" },
-      { paradex: "SOL-USD-PERP", vest: "SOL-PERP", extend: "SOL-USD" },
-      { paradex: "BERA-USD-PERP", vest: "BERA-PERP", extend: "BERA-USD" },
-      { paradex: "UNI-USD-PERP", vest: "UNI-PERP", extend: "UNI-USD" },
-      { paradex: "SPX-USD-PERP", vest: "SPX-PERP", extend: "SPX-USD" },
-      { paradex: "BTC-USD-PERP", vest: "BTC-PERP", extend: "BTC-USD" }
+      { paradex: 'HYPE-USD-PERP', vest: 'HYPE-PERP', extend: 'HYPE-USD' },
+      { paradex: 'S-USD-PERP', vest: 'S-PERP', extend: 'S-USD' },
+      { paradex: 'ETH-USD-PERP', vest: 'ETH-PERP', extend: 'ETH-USD' },
+      { paradex: 'SEI-USD-PERP', vest: 'SEI-PERP', extend: 'SEI-USD' },
+      { paradex: 'SOL-USD-PERP', vest: 'SOL-PERP', extend: 'SOL-USD' },
+      { paradex: 'BERA-USD-PERP', vest: 'BERA-PERP', extend: 'BERA-USD' },
+      { paradex: 'UNI-USD-PERP', vest: 'UNI-PERP', extend: 'UNI-USD' },
+      { paradex: 'SPX-USD-PERP', vest: 'SPX-PERP', extend: 'SPX-USD' },
+      { paradex: 'BTC-USD-PERP', vest: 'BTC-PERP', extend: 'BTC-USD' },
     ];
 
     const FUNDING_FREQ = {
-      paradex: 3,   // 3 fois par jour
-      vest: 24      // 24 fois par jour
+      paradex: 3, // 3 fois par jour
+      vest: 24, // 24 fois par jour
     };
 
     function extractTokenName(pairName) {
@@ -79,22 +166,6 @@
       return parseFloat(json.results?.[0]?.funding_rate);
     }
 
-    async function getParadexHistory(market) {
-      // Récupère l'historique des funding rates sur 7 jours (exemple simplifié)
-      const end = Date.now();
-      const start = end - 7 * 24 * 60 * 60 * 1000;
-      const url = `https://corsproxy.io/?https://api.prod.paradex.trade/v1/funding/history?market=${market}&startTime=${start}&endTime=${end}&limit=500`;
-      try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`Paradex History API ${res.status}`);
-        const json = await res.json();
-        // Retourne tableau des funding rates (ex: json.results)
-        return json.results.map(r => parseFloat(r.funding_rate));
-      } catch {
-        return [];
-      }
-    }
-
     async function getVestRate(symbol) {
       const url = `https://corsproxy.io/?https://serverprod.vest.exchange/v2/funding/history?symbol=${symbol}&limit=1`;
       const res = await fetch(url);
@@ -103,7 +174,6 @@
       return parseFloat(json?.[0]?.oneHrFundingRate);
     }
 
-    // Pas d'API historique Extend publique officielle connue, on simule ici :
     async function getExtendRate(market) {
       const end = Date.now();
       const start = end - 2 * 60 * 60 * 1000;
@@ -115,32 +185,40 @@
       return parseFloat(json.data[0].f);
     }
 
-    async function getExtendHistory(market) {
-      // Hypothétique endpoint historique Extend (à adapter ou désactiver si pas dispo)
+    async function getVestFundingHistory(symbol) {
       const end = Date.now();
-      const start = end - 7 * 24 * 60 * 60 * 1000;
-      const url = `https://corsproxy.io/?https://api.extended.exchange/api/v1/info/${market}/funding/history?startTime=${start}&endTime=${end}&limit=500`;
-      try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`Extend History API ${res.status}`);
-        const json = await res.json();
-        return json.data.map(d => parseFloat(d.f));
-      } catch {
-        return [];
-      }
+      const start = end - 7 * 24 * 60 * 60 * 1000; // 7 jours
+      const url = `https://corsproxy.io/?https://serverprod.vest.exchange/v2/funding/history?symbol=${symbol}&startTime=${start}&endTime=${end}&interval=1h&limit=168`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`VEST history API ${res.status}`);
+      const json = await res.json();
+      return json.map((entry) => parseFloat(entry.oneHrFundingRate));
     }
 
-    // Calcul moyenne simple
-    function average(arr) {
-      if (!arr.length) return 0;
-      return arr.reduce((a,b) => a+b, 0)/arr.length;
+    function mean(arr) {
+      const sum = arr.reduce((a, b) => a + b, 0);
+      return sum / arr.length;
     }
-    // Calcul écart-type simple
-    function stdDev(arr) {
-      if (arr.length < 2) return 0;
-      const avg = average(arr);
-      const variance = arr.reduce((acc,v) => acc + (v - avg) ** 2, 0) / (arr.length - 1);
+
+    function stddev(arr, avg) {
+      const variance =
+        arr.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / arr.length;
       return Math.sqrt(variance);
+    }
+
+    function evaluateFundingStrength(current, historyRates) {
+      if (!historyRates || historyRates.length === 0) return 'Inconnu';
+
+      const avg = mean(historyRates);
+      const sd = stddev(historyRates, avg);
+
+      if (sd === 0) return 'Stable';
+
+      const zScore = (current - avg) / sd;
+
+      if (Math.abs(zScore) < 1.5) return 'Stable';
+      else if (Math.abs(zScore) < 3) return 'Anomalie modérée';
+      else return 'Anomalie forte';
     }
 
     function decidePositions(p, v, e) {
@@ -148,7 +226,7 @@
       const rates = [
         { name: 'Paradex', rate: p, freq: FUNDING_FREQ.paradex },
         { name: 'VEST', rate: v, freq: FUNDING_FREQ.vest },
-        { name: 'Extend', rate: e, freq: FUNDING_FREQ.vest } // Assume 1h like Vest
+        { name: 'Extend', rate: e, freq: FUNDING_FREQ.vest }, // Assume 1h like Vest
       ];
 
       let best = { longExchange: '-', shortExchange: '-', apyDiff: '0.00' };
@@ -168,7 +246,7 @@
             best = {
               longExchange: long.name,
               shortExchange: short.name,
-              apyDiff: profit.toFixed(2)
+              apyDiff: profit.toFixed(2),
             };
           }
         }
@@ -187,66 +265,53 @@
       }
     }
 
-    function getConfidenceLabel(value, histAvg, histStd) {
-      if(histStd === 0) return `<span class="confidence-medium">N/A</span>`;
-      const diff = Math.abs(value - histAvg);
-      if(diff <= histStd) return `<span class="confidence-high">Fiable</span>`;
-      if(diff <= 1.5 * histStd) return `<span class="confidence-medium">Modérée</span>`;
-      return `<span class="confidence-low">Anomalie probable</span>`;
-    }
-
     async function update() {
-      const tbody = document.getElementById("body");
+      const tbody = document.getElementById('body');
       tbody.innerHTML = '';
 
       for (let i = 0; i < pairs.length; i++) {
         const pair = pairs[i];
         try {
-          const [p, v, e] = await Promise.all([
+          const [p, v, e, vHistory] = await Promise.all([
             getParadexRate(pair.paradex),
             getVestRate(pair.vest),
-            getExtendRate(pair.extend)
+            getExtendRate(pair.extend),
+            getVestFundingHistory(pair.vest),
           ]);
+          const { longExchange, shortExchange, apyDiff } = decidePositions(
+            p,
+            v,
+            e
+          );
 
-          // On calcule l'historique (en parallèle)
-          const [paradexHist, extendHist] = await Promise.all([
-            getParadexHistory(pair.paradex),
-            getExtendHistory(pair.extend)
-          ]);
+          const strength = evaluateFundingStrength(v, vHistory);
 
-          const { longExchange, shortExchange, apyDiff } = decidePositions(p, v, e);
           const tokenName = extractTokenName(pair.paradex);
-
-          // Calcul confiance pour APY estimé = apyDiff
-          // On utilise la plateforme du longExchange pour récupérer historique correspondante (ex simplifié)
-          let confidenceHtml = '<span class="confidence-medium">N/A</span>';
-          let histData = [];
-
-          if(longExchange === 'Paradex') histData = paradexHist;
-          else if(longExchange === 'Extend') histData = extendHist;
-          // Sinon pas d'historique, on met N/A
-
-          const histAvg = average(histData) * FUNDING_FREQ.paradex * 365 * 100; // Conversion en APY
-          const histStd = stdDev(histData) * FUNDING_FREQ.paradex * 365 * 100;
-
-          confidenceHtml = getConfidenceLabel(parseFloat(apyDiff), histAvg, histStd);
 
           tbody.innerHTML += `
             <tr class="main-row" data-index="${i}">
               <td>${tokenName}</td>
-              <td>${getApyBadge(apyDiff)}</td>
-              <td>${confidenceHtml}</td>
+              <td>
+                ${getApyBadge(apyDiff)}
+                <small>${strength}</small>
+              </td>
               <td>${longExchange}</td>
               <td>${shortExchange}</td>
-              <td class="${p >= 0 ? 'positive' : 'negative'}">${p.toFixed(6)}</td>
-              <td class="${v >= 0 ? 'positive' : 'negative'}">${v.toFixed(6)}</td>
-              <td class="${e !== null ? (e >= 0 ? 'positive' : 'negative') : ''}">${e !== null ? e.toFixed(6) : '-'}</td>
+              <td class="${p >= 0 ? 'positive' : 'negative'}">${p.toFixed(
+            6
+          )}</td>
+              <td class="${v >= 0 ? 'positive' : 'negative'}">${v.toFixed(
+            6
+          )}</td>
+              <td class="${
+                e !== null ? (e >= 0 ? 'positive' : 'negative') : ''
+              }">${e !== null ? e.toFixed(6) : '-'}</td>
               <td>${new Date().toLocaleTimeString()}</td>
             </tr>
           `;
         } catch (e) {
           console.error('Erreur pour', pair.paradex, e);
-          tbody.innerHTML += `<tr><td colspan="9" class="negative">Erreur chargement ${pair.paradex}: ${e.message}</td></tr>`;
+          tbody.innerHTML += `<tr><td colspan="8" class="negative">Erreur chargement ${pair.paradex}: ${e.message}</td></tr>`;
         }
       }
     }
