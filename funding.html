@@ -149,10 +149,11 @@
       { paradex: 'BTC-USD-PERP', vest: 'BTC-PERP', extend: 'BTC-USD' },
     ];
 
-    const FUNDING_FREQ = {
-      paradex: 3, // 3 fois par jour
-      vest: 24, // 24 fois par jour
-    };
+const FUNDING_FREQ = {
+  paradex: 3,  // 3 fois par jour (8h)
+  vest: 24,    // 24 fois par jour (1h)
+  extend: 24   // 24 fois par jour (1h)
+};
 
     function extractTokenName(pairName) {
       return pairName.split('-')[0];
